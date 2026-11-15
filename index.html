@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0f0c1a">
+<link rel="icon" href="img/ic_void.webp">
+<title>액팅 소울 : 0 — 체험판</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0f0c1a;        /* 공허의 잉크 */
+  --iron:#2c2838;       /* 사슬 철 */
+  --silver:#c9c5d6;     /* 로고의 은 */
+  --bone:#ece8f3;       /* 본문 */
+  --void:#8f7bff;       /* 공허 보라 */
+  --void-deep:#3b2a7a;
+  --ember:#e0533a;      /* 분노 */
+  --fear:#8a4fd0;       /* 두려움 */
+  --serif:'Nanum Myeongjo','Noto Serif KR','AppleMyungjo',serif;
+  --sans:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#07060c;color:var(--bone);font-family:var(--sans);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
+
+#stage{position:relative;height:100dvh;max-width:520px;margin:0 auto;overflow:hidden;background:var(--ink);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.layer{position:absolute;inset:0}
+
+/* ── 배경 ───────────────────────── */
+#bg{transition:opacity .8s}
+.bg-rift{background:
+  radial-gradient(120% 55% at 50% 20%,#5a5468 0%,transparent 65%),
+  linear-gradient(#34303f 0%,#1d1a26 55%,#0d0c12 100%)}
+.bg-ruin{background:radial-gradient(90% 40% at 50% 60%,#4a3530 0%,transparent 70%),linear-gradient(#2e2a34,#18151d 70%)}
+.bg-forge{background:
+  radial-gradient(60% 35% at 25% 62%,rgba(255,130,50,.5) 0%,transparent 70%),
+  radial-gradient(50% 30% at 85% 55%,rgba(210,80,25,.28) 0%,transparent 70%),
+  linear-gradient(#21160f 0%,#1a110c 45%,#3a1c0d 70%,#120b08 100%)}
+.bg-wall{background:
+  radial-gradient(90% 45% at 50% 45%,rgba(224,83,58,.32),transparent 70%),
+  linear-gradient(#463837 0%,#2a2124 50%,#161114 100%)}
+.bg-forest{background:
+  radial-gradient(80% 40% at 50% 45%,rgba(130,155,145,.22),transparent 70%),
+  linear-gradient(#1c2422 0%,#121816 55%,#080a09 100%)}
+.bg-village{background:
+  radial-gradient(80% 40% at 65% 50%,rgba(160,25,35,.42),transparent 70%),
+  linear-gradient(#271b20 0%,#160f13 70%)}
+.bg-shrine{background:
+  radial-gradient(70% 45% at 50% 42%,rgba(143,123,255,.3),transparent 70%),
+  linear-gradient(#110e1c 0%,#0a0812 70%,#050409 100%)}
+.bg-void{background:radial-gradient(circle at 50% 42%,#1a1236 0%,#06040d 55%,#000 100%)}
+.bg-black{background:#000}
+#rift{position:absolute;left:0;right:0;top:4%;height:46%;opacity:0;transition:opacity 1.2s;pointer-events:none}
+#fxCanvas{pointer-events:none}
+
+/* ── 스프라이트 ─────────────────── */
+#sprites{pointer-events:none}
+.spr{position:absolute;bottom:22%;height:68%;transform:translateX(-50%);transition:left .5s ease,opacity .45s,filter .3s;opacity:0;filter:brightness(.55) saturate(.8)}
+.spr img{height:100%;width:auto;display:block;filter:drop-shadow(0 10px 30px rgba(0,0,0,.6))}
+.spr.on{opacity:1}
+.spr.talk{filter:none}
+.spr.spirit{height:34%;bottom:46%;animation:float 3.6s ease-in-out infinite}
+.spr.spirit img{filter:drop-shadow(0 0 18px rgba(170,150,255,.75))}
+@keyframes float{50%{transform:translateX(-50%) translateY(-10px)}}
+
+/* ── 대사창 ─────────────────────── */
+#box{position:absolute;left:10px;right:10px;bottom:calc(12px + env(safe-area-inset-bottom));min-height:28%;
+  padding:30px 20px 18px;background:linear-gradient(180deg,rgba(18,15,30,.86),rgba(10,8,18,.94));
+  border:1px solid rgba(201,197,214,.35);box-shadow:inset 0 0 0 3px rgba(15,12,26,.9),inset 0 0 0 4px rgba(201,197,214,.15),0 12px 40px rgba(0,0,0,.6);
+  border-radius:3px}
+#name{position:absolute;top:-15px;left:16px;padding:5px 16px 6px;font-family:var(--serif);font-weight:800;font-size:16px;letter-spacing:.04em;
+  background:linear-gradient(180deg,#3a3548,#1b1826);border:1px solid rgba(201,197,214,.55);color:var(--silver);
+  clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,8px 100%,0 50%)}
+#name:empty{display:none}
+#text{font-family:var(--serif);font-size:17px;line-height:1.85;word-break:keep-all;white-space:pre-wrap;min-height:4em}
+#text.narr{color:#cfcadb}
+#text.sys{font-family:var(--sans);color:var(--void);text-align:center;letter-spacing:.02em}
+#next{position:absolute;right:16px;bottom:10px;width:10px;height:10px;border-right:2px solid var(--silver);border-bottom:2px solid var(--silver);transform:rotate(45deg);opacity:0;animation:blink 1s infinite}
+#box.done #next{opacity:1}
+@keyframes blink{50%{opacity:.2}}
+
+#hud{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;display:flex;gap:6px;z-index:20}
+.hb{font-size:13px;padding:6px 11px;border:1px solid rgba(201,197,214,.3);background:rgba(15,12,26,.7);border-radius:2px;color:var(--silver)}
+.hb.on{border-color:var(--void);color:#fff;background:rgba(59,42,122,.7)}
+
+/* ── 막 제목 카드 ───────────────── */
+#card{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000;opacity:0;pointer-events:none;transition:opacity .9s;z-index:30;text-align:center;padding:24px}
+#card.on{opacity:1;pointer-events:auto}
+#card .act{font-family:var(--serif);font-size:15px;color:#8d88a0;letter-spacing:.3em;margin-bottom:14px}
+#card .ttl{font-family:var(--serif);font-weight:800;font-size:30px;color:var(--silver);letter-spacing:.06em;
+  background:linear-gradient(180deg,#f4f2fa 10%,#9d98ad 55%,#e6e2ef 70%,#6e6980);-webkit-background-clip:text;background-clip:text;color:transparent}
+#card .rule{width:120px;height:1px;margin:18px auto 0;background:linear-gradient(90deg,transparent,var(--void),transparent)}
+
+/* ── 선택지 ─────────────────────── */
+#choice{display:none;flex-direction:column;justify-content:center;gap:14px;padding:0 28px;background:rgba(5,4,10,.72);z-index:25}
+#choice.on{display:flex}
+#choice .q{font-family:var(--serif);font-size:18px;text-align:center;line-height:1.7;margin-bottom:10px;word-break:keep-all}
+.opt{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid rgba(201,197,214,.35);background:rgba(20,17,32,.9);text-align:left;border-radius:2px}
+.opt img{width:46px;height:46px;flex:none}
+.opt b{display:block;font-family:var(--serif);font-size:18px;color:#fff}
+.opt span{font-size:13px;color:#a7a2b8}
+.opt:active{border-color:var(--void);background:rgba(59,42,122,.6)}
+
+/* ── 시스템 알림 / 아이템 ───────── */
+#toast{position:absolute;left:50%;top:22%;transform:translate(-50%,-10px);min-width:70%;padding:14px 18px;text-align:center;
+  background:rgba(10,8,20,.92);border-top:1px solid var(--void);border-bottom:1px solid var(--void);font-size:14px;line-height:1.7;opacity:0;transition:.4s;z-index:26;pointer-events:none;color:#ddd6ff}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ── 타이틀 ─────────────────────── */
+#title{display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:40;background:radial-gradient(circle at 50% 40%,#1c1533 0%,#0b0814 50%,#000 100%)}
+#title img{width:96%;max-width:500px;filter:drop-shadow(0 0 40px rgba(143,123,255,.35));animation:breathe 5s ease-in-out infinite}
+@keyframes breathe{50%{filter:drop-shadow(0 0 60px rgba(143,123,255,.55))}}
+#title .sub{font-family:var(--serif);color:#9c97ad;font-size:15px;letter-spacing:.2em;margin:-6px 0 46px}
+#title .menu{display:flex;flex-direction:column;gap:12px;width:220px}
+.tbtn{padding:13px 0;font-family:var(--serif);font-size:17px;font-weight:700;border:1px solid rgba(201,197,214,.4);background:rgba(15,12,26,.6);color:var(--silver);border-radius:2px}
+.tbtn:active{background:rgba(59,42,122,.6)}
+.tbtn[disabled]{opacity:.35}
+#title .ver{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));font-size:12px;color:#6c6780}
+
+/* ── 로그 ───────────────────────── */
+#log{display:none;z-index:35;background:rgba(5,4,10,.96);padding:60px 20px 20px;overflow-y:auto}
+#log.on{display:block}
+#log p{font-family:var(--serif);font-size:15px;line-height:1.75;margin-bottom:12px;color:#cfcadb;word-break:keep-all}
+#log p b{display:block;font-size:13px;color:var(--void);font-family:var(--sans)}
+#logClose{position:fixed;top:calc(12px + env(safe-area-inset-top))}
+
+/* ── 3D 전투 ───────────────────── */
+#act{display:none;z-index:15;touch-action:none}
+#act.on{display:block}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+#vfx{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,transparent 30%,rgba(40,20,110,.55) 80%,rgba(0,0,0,.85));mix-blend-mode:multiply}
+#vfx.on{animation:vfx 1.6s ease-out}
+@keyframes vfx{0%{opacity:1;backdrop-filter:grayscale(1) contrast(1.2)}70%{opacity:.8}100%{opacity:0}}
+.ab{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));pointer-events:none}
+.ab .nm{font-family:var(--serif);font-weight:800;font-size:20px;color:#fff;text-shadow:0 2px 8px #000}
+.ab .sb{font-size:12px;color:#c3bdd3;text-shadow:0 1px 4px #000;margin-top:1px}
+.bar{position:relative;height:9px;background:rgba(20,17,30,.85);border:1px solid rgba(201,197,214,.35);margin-top:7px;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;left:0;background:linear-gradient(90deg,#7a1f2c,#d4475a);transition:width .25s}
+.bar .lag{background:#f2e6e9;transition:width .9s .25s}
+.bar .jm{position:absolute;top:-2px;bottom:-2px;left:25%;width:2px;background:var(--void);box-shadow:0 0 6px var(--void)}
+.ab .hn{font-size:11px;color:#c9c5d6;text-align:right;margin-top:2px;text-shadow:0 1px 3px #000}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;min-height:20px}
+.chip{font-size:11.5px;padding:2px 7px;border:1px solid;border-radius:2px;background:rgba(10,8,18,.75)}
+.chip.red{border-color:#c2493a;color:#ffb3a5}.chip.vio{border-color:#8a4fd0;color:#dcc2ff}.chip.gry{border-color:#777;color:#ccc}
+#acall{position:absolute;left:0;right:0;top:27%;text-align:center;font-family:var(--serif);font-weight:800;font-size:19px;color:#fff;text-shadow:0 0 12px #000,0 0 3px #000;opacity:0;transform:translateY(6px);transition:.15s;pointer-events:none}
+#acall.on{opacity:1;transform:none}#acall.org{color:#ffc27a}#acall.red{color:#ff8c8c}#acall.vio{color:#d6c8ff}
+.anum{position:absolute;transform:translate(-50%,-50%);font-family:var(--serif);font-weight:800;font-size:24px;color:#fff;text-shadow:0 0 8px #000,0 0 2px #000;pointer-events:none;animation:pop .9s forwards}
+.anum.big{font-size:32px;color:#ffe2a8}.anum.me{color:#ff8d7a}.anum.heal{color:#9dffb8}
+@keyframes pop{0%{opacity:0;margin-top:0;scale:.6}15%{opacity:1;scale:1.15}100%{opacity:0;margin-top:-50px;scale:1}}
+.pl{position:absolute;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));width:44%;display:flex;gap:9px;align-items:flex-end;pointer-events:none}
+.ring{position:relative;width:62px;height:62px;flex:none;border-radius:50%;background:conic-gradient(var(--void) calc(var(--v)*1%),rgba(34,30,48,.9) 0)}
+.ring::before{content:"";position:absolute;inset:4px;border-radius:50%;background:#000;box-shadow:inset 0 0 14px rgba(143,123,255,.5)}
+.ring img{position:absolute;inset:6px;width:50px;height:50px;border-radius:50%;object-fit:cover;object-position:50% 6%}
+.ring.full{animation:ringpulse 1.2s infinite}
+@keyframes ringpulse{50%{box-shadow:0 0 20px var(--void)}}
+.pst{flex:1;font-size:11px;color:#d9d4e6;text-shadow:0 1px 3px #000}
+.pst .row{display:flex;justify-content:space-between;margin-top:3px}
+.pst .bar{height:7px;margin-top:2px}
+.pst .hp i{background:linear-gradient(90deg,#2f6f63,#58c6a6)}
+.pst .sy i{background:linear-gradient(90deg,#4b2b6a,#c06bff)}
+#syncRow.hot .sy i{background:linear-gradient(90deg,#8a2c6a,#ff5dbd)}
+#joyZone{position:absolute;left:0;top:22%;width:52%;bottom:96px}
+#joyBase{position:absolute;width:104px;height:104px;margin:-52px 0 0 -52px;border-radius:50%;border:1px solid rgba(201,197,214,.35);background:rgba(15,12,26,.35);opacity:0;pointer-events:none}
+#joyBase.on{opacity:1}
+#joyKnob{position:absolute;left:50%;top:50%;width:46px;height:46px;border-radius:50%;background:rgba(201,197,214,.55);transform:translate(-50%,-50%)}
+.joyhint{position:absolute;left:12%;bottom:30%;font-size:12px;color:rgba(201,197,214,.45);pointer-events:none}
+.pad{position:absolute;right:10px;bottom:calc(12px + env(safe-area-inset-bottom));width:208px;height:218px}
+.pb{position:absolute;border-radius:50%;border:1px solid rgba(201,197,214,.45);background:radial-gradient(circle at 50% 35%,rgba(48,42,66,.92),rgba(16,13,26,.92));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none}
+.pb b{font-family:var(--serif);font-size:14px;line-height:1.1}.pb span{font-size:10px;color:#c9c5d6;min-height:0}
+.pb:active{transform:scale(.94);border-color:#fff}
+.pb.off{opacity:.38}
+#bAtk{right:0;bottom:0;width:86px;height:86px}#bAtk b{font-size:18px}
+#bDodge{right:96px;bottom:2px;width:62px;height:62px}
+#bParry{right:8px;bottom:96px;width:62px;height:62px;border-color:rgba(255,170,80,.7)}
+#bVoid{right:84px;bottom:76px;width:54px;height:54px;border-color:rgba(143,123,255,.75)}
+#bVoid.ready{box-shadow:0 0 16px var(--void)}
+#bSkill{right:150px;bottom:70px;width:50px;height:50px}
+#bSwap{right:70px;bottom:146px;width:50px;height:50px;border-color:rgba(192,107,255,.7)}
+#bJudge{left:50%;bottom:calc(250px + env(safe-area-inset-bottom));transform:translateX(-50%);width:auto;padding:12px 26px;border-radius:2px;border:1px solid #fff;background:radial-gradient(circle,#5a42c8,#170f33);font-family:var(--serif);font-weight:800;font-size:18px;display:none;animation:ringpulse 1s infinite}
+#bJudge.on{display:block}
+#atip{position:absolute;left:12px;right:12px;top:calc(96px + env(safe-area-inset-top));display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:rgba(15,12,26,.9);border:1px solid rgba(143,123,255,.5);border-radius:2px;font-size:13.5px;line-height:1.5;opacity:0;transition:.3s;pointer-events:none}
+#atip.on{opacity:1}#atip img{width:34px;height:34px;flex:none;object-fit:cover;object-position:50% 8%;border-radius:50%}#atip b{color:#d8ceff;font-family:var(--serif)}
+#atut{position:absolute;left:12px;right:12px;top:calc(96px + env(safe-area-inset-top));padding:10px 12px;background:rgba(30,18,10,.9);border:1px solid rgba(255,170,80,.6);font-size:14px;line-height:1.55;display:none;pointer-events:none}
+#atut.on{display:block}#atut small{display:block;color:#ffc27a;font-family:var(--serif);font-weight:700;margin-bottom:2px}
+.keys{position:absolute;left:12px;right:12px;top:calc(170px + env(safe-area-inset-top));font-size:11px;color:rgba(201,197,214,.55);pointer-events:none;display:none}
+@media (hover:hover) and (pointer:fine){.keys{display:block}}
+#result{display:none;z-index:28;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.78);text-align:center;padding:30px}
+#result.on{display:flex}
+#result h2{font-family:var(--serif);font-size:32px;color:var(--silver);margin-bottom:10px}
+#result p{color:#b8b2c8;line-height:1.7;margin-bottom:26px;word-break:keep-all}
+/* ── 공허의 눈 ──────────────────── */
+#eye{display:flex;align-items:center;justify-content:center;z-index:29;pointer-events:none;opacity:0;background:#000;transition:opacity .4s}
+#eye.on{opacity:1;pointer-events:auto}
+#eye .orb{width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,#000 55%,#5a44c8 70%,#c9bfff 74%,transparent 76%);box-shadow:0 0 80px #6d55e6}
+#eye.on .orb{animation:orb 1.6s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes orb{to{width:150vmax;height:150vmax}}
+
+.shake{animation:shake .45s}
+@keyframes shake{20%{transform:translate(-7px,3px)}40%{transform:translate(6px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
+.flash::after{content:"";position:absolute;inset:0;background:#fff;z-index:50;animation:flash .6s forwards;pointer-events:none}
+@keyframes flash{from{opacity:.9}to{opacity:0}}
+.beat{animation:beat 1.1s 2}
+@keyframes beat{15%{transform:scale(1.025);filter:hue-rotate(20deg) saturate(1.6)}30%{transform:scale(1)}45%{transform:scale(1.02)}}
+
+#end{display:none;z-index:45;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;background:radial-gradient(circle at 50% 40%,#1c1533,#000 70%)}
+#end.on{display:flex}
+#end img{width:80%;max-width:380px;margin-bottom:10px}
+#end h2{font-family:var(--serif);font-size:20px;color:var(--silver);margin-bottom:6px}
+#end .nx{font-family:var(--serif);color:#a49fb5;margin-bottom:24px}
+#end dl{display:grid;grid-template-columns:auto auto;gap:6px 18px;font-size:14px;margin-bottom:30px;text-align:left}
+#end dt{color:#8d88a0}#end dd{color:#fff}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media (min-width:700px){#stage{box-shadow:0 0 0 1px #1d1a28,0 0 80px rgba(0,0,0,.8)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg" class="layer bg-black"></div>
+  <svg id="rift" viewBox="0 0 400 220" preserveAspectRatio="none" aria-hidden="true">
+    <defs><filter id="glow" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>
+    <radialGradient id="tear" cx="50%" cy="50%" r="70%"><stop offset="0" stop-color="#05030c"/><stop offset=".7" stop-color="#2a1a5c"/><stop offset="1" stop-color="#b9a8ff"/></radialGradient></defs>
+    <path id="tearShape" d="M-10 70 L30 78 L52 66 L80 86 L104 74 L128 98 L150 88 L176 112 L200 100 L224 124 L246 110 L272 132 L296 120 L322 146 L346 134 L372 156 L410 150 L410 166 L374 172 L344 158 L318 170 L292 140 L268 152 L242 128 L220 140 L198 116 L172 128 L148 104 L126 112 L102 90 L78 100 L50 80 L28 92 L-10 84Z" fill="#c4b6ff" filter="url(#glow)" opacity=".75"/>
+    <path d="M-10 70 L30 78 L52 66 L80 86 L104 74 L128 98 L150 88 L176 112 L200 100 L224 124 L246 110 L272 132 L296 120 L322 146 L346 134 L372 156 L410 150 L410 166 L374 172 L344 158 L318 170 L292 140 L268 152 L242 128 L220 140 L198 116 L172 128 L148 104 L126 112 L102 90 L78 100 L50 80 L28 92 L-10 84Z" fill="url(#tear)" stroke="#e6deff" stroke-width="1.2"/>
+  </svg>
+  <canvas id="fxCanvas" class="layer"></canvas>
+  <div id="sprites" class="layer"></div>
+
+  <div id="vn" class="layer">
+    <div id="box" role="button" aria-label="다음 대사">
+      <div id="name"></div>
+      <div id="text"></div>
+      <div id="next"></div>
+    </div>
+  </div>
+
+  <!-- 3D 전투 -->
+  <div id="act" class="layer">
+    <canvas id="gl"></canvas>
+    <div id="vfx"></div>
+    <div class="ab">
+      <div class="nm" id="aName"></div><div class="sb" id="aSub"></div>
+      <div class="bar"><i class="lag" id="aLag"></i><i id="aHp"></i><span class="jm" id="aJudgeMark"></span></div>
+      <div class="hn" id="aNum"></div>
+      <div class="chips" id="aChips"></div>
+    </div>
+    <div id="acall"></div>
+    <div id="joyZone"><div id="joyBase"><div id="joyKnob"></div></div><div class="joyhint">여기를 끌어서 이동</div></div>
+    <div class="keys">WASD 이동 · J 공격 · K 회피 · L 흘려보내기 · U 공허 · I 스킬 · O 무기 · Space 단죄</div>
+    <div class="pl">
+      <div class="ring" id="pRing" style="--v:0"><img src="img/eden.webp" alt="이든"></div>
+      <div class="pst">
+        <div class="row"><span>이든</span><span id="pHpN"></span></div><div class="bar hp"><i id="pHp"></i></div>
+        <div class="row"><span>공허</span><span id="pVdN"></span></div>
+        <div id="syncRow"><div class="row"><span>동기화율</span><span id="pSyN"></span></div><div class="bar sy"><i id="pSy"></i></div></div>
+        <div class="chips" id="pChips"></div>
+      </div>
+    </div>
+    <div class="pad">
+      <button class="pb" id="bAtk" data-k="atk"><b>공격</b></button>
+      <button class="pb" id="bDodge" data-k="dodge"><b>회피</b></button>
+      <button class="pb" id="bParry" data-k="parry"><b>흘려</b><span>보내기</span></button>
+      <button class="pb" id="bVoid" data-k="void"><b>공허</b><span>40</span></button>
+      <button class="pb" id="bSkill" data-k="skill"><b>설계</b><span></span></button>
+      <button class="pb" id="bSwap" data-k="swap"><b>테로르</b></button>
+    </div>
+    <button class="pb" id="bJudge" data-k="judge">단죄</button>
+    <div id="atut"><small>카르도의 가르침 <span id="atutN"></span></small><span id="atutText"></span></div>
+    <div id="atip"><img id="atipImg" alt=""><div><b id="atipName"></b><div id="atipText"></div></div></div>
+  </div>
+
+  <div id="choice" class="layer"></div>
+  <div id="toast"></div>
+  <div id="card" class="layer"><div class="act" id="cardAct"></div><div class="ttl" id="cardTtl"></div><div class="rule"></div></div>
+  <div id="result" class="layer"></div>
+  <div id="eye" class="layer"><div class="orb"></div></div>
+  <div id="log" class="layer"><button class="hb" id="logClose">닫기</button><div id="logList"></div></div>
+
+  <div id="hud">
+    <button class="hb" id="bAuto">자동</button>
+    <button class="hb" id="bLog">기록</button>
+    <button class="hb" id="bSnd">소리 켬</button>
+    <button class="hb" id="bMenu">타이틀</button>
+  </div>
+
+  <div id="title" class="layer">
+    <img src="img/logo.webp" alt="액팅 소울 : 0">
+    <div class="sub">0의 시대 · 시즌 1 체험판</div>
+    <div class="menu">
+      <button class="tbtn" id="tNew">처음부터</button>
+      <button class="tbtn" id="tCont">이어하기</button>
+    </div>
+    <div class="ver">v0.2.0 · 3D 액션 체험판 · 제 0막 ~ 제 2막 에필로그</div>
+  </div>
+
+  <div id="end" class="layer">
+    <img src="img/logo.webp" alt="">
+    <h2>체험판은 여기까지입니다</h2>
+    <div class="nx">제 3막 「우니타스의 타오르는 규율」에서 계속</div>
+    <dl id="endStats"></dl>
+    <button class="tbtn" id="endBtn" style="width:220px">타이틀로</button>
+  </div>
+</div>
+
+<script src="action.js"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const stage=$('stage');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+
+/* ═══════════ 소리 (간단한 합성음) ═══════════ */
+window.SFX={on:true,ctx:null,
+  play(type){ if(!this.on)return; try{
+    this.ctx=this.ctx||new (window.AudioContext||window.webkitAudioContext)();
+    const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);
+    const P={hit:['sawtooth',180,60,.18,.22],heavy:['square',90,30,.25,.4],parry:['triangle',1200,1800,.15,.25],
+      void:['sine',220,55,.22,.9],ui:['sine',660,660,.05,.06],judge:['sine',110,880,.25,1.2],hurt:['sawtooth',120,50,.2,.3],heal:['sine',440,880,.1,.4]}[type]||['sine',440,440,.05,.1];
+    o.type=P[0];o.frequency.setValueAtTime(P[1],t);o.frequency.exponentialRampToValueAtTime(P[2],t+P[4]);
+    g.gain.setValueAtTime(P[3],t);g.gain.exponentialRampToValueAtTime(.001,t+P[4]);o.start(t);o.stop(t+P[4]+.02);
+  }catch(e){} }};
+
+/* ═══════════ 배경 입자 ═══════════ */
+const FX=(()=>{const cv=$('fxCanvas'),cx=cv.getContext('2d');let P=[],cfg=null,W,H;
+  const cfgs={rift:{n:60,col:'200,195,215',vy:[.3,.9],vx:[-.2,.2],r:[1,2.2],a:.5},ruin:{n:50,col:'180,170,170',vy:[.2,.6],vx:[-.3,.1],r:[1,2],a:.4},
+    forge:{n:40,col:'255,150,60',vy:[-1.2,-.4],vx:[-.3,.3],r:[1,2.4],a:.8},wall:{n:55,col:'255,110,70',vy:[-.9,-.3],vx:[-.4,.4],r:[1,2.2],a:.6},
+    forest:{n:14,col:'170,190,180',vy:[-.05,.05],vx:[.1,.35],r:[40,90],a:.05},village:{n:40,col:'200,160,160',vy:[.2,.5],vx:[-.2,.2],r:[1,2],a:.35},
+    shrine:{n:45,col:'170,150,255',vy:[-.4,-.1],vx:[-.2,.2],r:[1,2.6],a:.6},void:{n:50,col:'170,150,255',vy:[-.3,.3],vx:[-.3,.3],r:[.8,2],a:.6}};
+  const rnd=(a)=>a[0]+Math.random()*(a[1]-a[0]);
+  function size(){W=cv.width=stage.clientWidth;H=cv.height=stage.clientHeight}
+  function mk(init){return{x:Math.random()*W,y:init?Math.random()*H:(cfg.vy[0]<0?H+10:-10),vx:rnd(cfg.vx),vy:rnd(cfg.vy),r:rnd(cfg.r),a:Math.random()*cfg.a+.1}}
+  function set(name){cfg=cfgs[name]||null;P=cfg?Array.from({length:cfg.n},()=>mk(true)):[]}
+  function loop(){cx.clearRect(0,0,W,H);if(cfg){for(const p of P){p.x+=p.vx;p.y+=p.vy;
+      if(p.y>H+100||p.y<-100||p.x>W+100||p.x<-100)Object.assign(p,mk(false));
+      if(cfg.r[0]>20){const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);g.addColorStop(0,`rgba(${cfg.col},${cfg.a})`);g.addColorStop(1,`rgba(${cfg.col},0)`);cx.fillStyle=g}
+      else cx.fillStyle=`rgba(${cfg.col},${p.a})`;
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,7);cx.fill()}}requestAnimationFrame(loop)}
+  addEventListener('resize',size);size();
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)loop();
+  return{set}})();
+
+/* ═══════════ 등장인물 ═══════════ */
+const CHAR={eden:'img/eden.webp',sentia:'img/sentia.webp',sensus:'img/sensus.webp',nesis:'img/nesis.webp',kardo:'img/kardo.webp',furor:'img/furor.webp',teror:'img/teror.webp',phobia:'img/phobia.webp'};
+const SPIRIT={sentia:1,sensus:1};
+const SPEAKER={'카르도':'kardo','센티아':'sentia','센수스':'sensus','이든':'eden','대행자':'eden','네시스':'nesis','푸로르':'furor','테로르':'teror','포비아':'phobia'};
+const POS={l:22,c:50,r:76,ll:14,rr:86};
+
+/* ═══════════ 대본 ═══════════
+   N 서술 · S 대사 · A/B 선택에 따른 분기 */
+const N=t=>({n:t}), S=(who,t)=>({s:who,t}), A=(...c)=>({if:'A',c}), B=(...c)=>({if:'B',c});
+const bg=(b,o)=>({bg:b,...o}), show=(id,pos)=>({show:id,pos}), hide=(...ids)=>({hide:ids}), fx=f=>({fx:f}), sys=t=>({sys:t});
+const card=(act,ttl)=>({card:[act,ttl]}), battle=id=>({battle:id});
+
+const SCRIPT=[
+ card('제 0막','세계의 비명'), bg('rift',{rift:1}),
+ N('하늘이 찢어졌다. 비유가 아닌, 물리적인 파멸이었다.'),
+ N('현대의 하늘 위로 회색빛 균열 ‘공허의 게이트’가 아가리를 벌리자, 인류의 상식은 고철더미로 전락했다.'),
+ N('대지는 사념을 빨아들이는 광석 ‘렐리움’으로 변이하며 푸르게 타올랐다.'),
+ S('군인 A','“공격해! 젠장, 왜 탄환이 안 박히냐고!”'),
+ fx('shake'),
+ S('군인 B','“외피가 너무 두껍습니다! 지금 무기로는 생채기 하나 낼 수 없— 치익, 치이익!”'),
+ N('비명 섞인 무전이 끊기기도 전, 거대한 그림자들이 도심을 짓밟았다.'),
+ S('???','“내 손을 잡아! 절대로 놓치면 안 돼!”'),
+ S('???','“안 돼! 지금 저 아이를 끌어당기면 같이 벙커로 들어갈 수 있어! 제발, 내가 가면 살릴 수 있단 말이야!”'),
+ N('폭발음 속에서 수많은 인연이 끊겨 나갔다.\n공포에 잡아먹혀 자아를 잃은 자들은 ‘폴른’으로 변이해 동족을 도살했다.'),
+ N('그 지옥 같은 아수라장의 정점에 한 자가 서 있었다.\n인류의 마지막 보루이자, 자아와 무구가 합일된 최정점의 ‘초월자’.'),
+ show('eden','c'),
+ S('센티아','“대행자! 당신의 본질이 임계치를 넘었어요! 이대로라면 힘을 전부 잃어버릴지도 몰라요!”'),
+ N('대행자의 눈동자엔 파동이 없었다. 그는 기프트를 ‘받은’ 자가 아닌, 공허 그 자체였다.'),
+ S('대행자','“……후.”'),
+ fx('void'),
+ N('무미건조한 숨결과 함께 신의 권능에 가까운 힘이 뿜어져 나왔다. 게이트의 팽창은 멈췄고, 인류가 숨을 돌릴 최소한의 시간이 확보되었다.'),
+ fx('flash'),
+ N('쿠아앙—!\n한계를 넘어선 반발 작용이 대행자의 전신을 강타했다. 손에 쥐여 있던 시너지아가 단말마 같은 공명음을 내며 튕겨 나갔다.'),
+ {choice:'흩어지는 두 자루의 검.\n마지막까지 손끝에 남은 것은?',opts:[
+   {k:'A',img:'img/ic_sentia.webp',t:'센티아',d:'이성의 검 · 냉철한 조언자, 방어와 설계'},
+   {k:'B',img:'img/ic_sensus.webp',t:'센수스',d:'본성의 검 · 감정의 증폭기, 폭발적인 일격'}]},
+ hide('eden'),
+ N('제어기를 놓친 대행자의 안광이 급격히 꺼졌다.'),
+ N('멀리서 소중한 이를 잃은 존재의 절망적인 통곡이, 무너져 내리는 세계의 비명과 섞여 들려왔다.'),
+
+ card('제 1막','대장간의 고동'), {save:1}, bg('ruin'),
+ N('폭발이 남긴 매캐한 연기가 채 가시지 않은 폐허.'),
+ show('kardo','r'),
+ S('카르도','“사고 현장에 생존자가 있을 리가 없는데…… 더더욱 이런 거대한 크레이터가 있는 이곳엔 말이지.”'),
+ N('잿더미 속에 한 소년이 놓여 있었다. 흙먼지 하나 묻지 않은 깨끗한 살결. 그리고 생명줄처럼 움켜쥔 검 한 자루.'),
+ S('카르도','“어이, 정신 들어? 살아 있나!”'),
+ N('감겼던 눈이 천천히 떠졌다. 그 눈동자엔 공포도, 고통도, 생존에 대한 갈망조차 없었다. 그저 텅 빈 심연이 카르도를 비출 뿐이었다.'),
+ N('카르도는 그 무감각한 눈동자에서, 오래전 사고로 잃은 제 아들의 마지막 모습을 보았다.\n그것이 이 기이한 인연의 시작이었다.'),
+ hide('kardo'), bg('forge'),
+ N('다시 눈을 떴을 때 가장 먼저 느껴진 것은 코끝을 찌르는 탄내와 피부를 그을릴 듯한 열기였다.'),
+ S('대행자','“……….”'),
+ show('kardo','r'),
+ S('카르도','“오호, 일주일 내내 죽은 듯이 잠만 자길래 이대로 영영 안 깨어나나 싶었더니만. 명줄 하나는 질긴 녀석이군 그래.”'),
+ S('카르도','“그 험악한 공허 게이트 근처에서, 흙먼지 하나 안 묻은 몰골로 쓰러져 있는 건 대체 무슨 조화냐? 그것도 이 검을 보물이라도 되는 양 손에 꼭 쥐고 말이야.”'),
+ N('빛을 잃고 날이 나간 검. 그것을 본 순간 가슴 한구석이 찌릿하게 저려왔다.\n본능이 속삭였다. 저것은 단순한 무기가 아니라, 자신의 잘려 나간 ‘일부’라고.'),
+ A(show('sentia','l'),
+   S('센티아','“하! 이제야 일어난 거야? 이 바보 녀석. 내가 얼마나 불렀는지 알아?”'),
+   S('센티아','“멍하게 있지 마. ……그 멍청한 센수스 녀석, 안 보이잖아. 너 지키겠다고 무리하다가 어디론가 튕겨 나갔다고. 흥, 기껏 지켜줬더니 주인이라는 놈은 자기 이름도 기억 못 하는 인형이 돼버리고.”')),
+ B(show('sensus','l'),
+   S('센수스','“주인! 일어났어? 응? 진짜 일어난 거지? 나 무서워 죽는 줄 알았어! 다시는 그렇게 막 잠들면 안 돼, 약속해!”'),
+   S('센수스','“저기… 주인. 센티아 언니가 안 보여. 우리 지켜주다가 저 너머로 굴러떨어졌나 봐. 우리 빨리 찾으러 가자, 응?”')),
+ N('‘센티아’, ‘센수스’. 그 이름을 듣는 순간 무언가를 잃어버린 듯한 서늘한 감각이 전신을 훑고 지나갔다.'),
+ S('카르도','“내 이름은 카르도다. 네 이름은 뭐냐?”'),
+ S('대행자','“나는 이름이 없다. 그저 대행자라고 불렸을 뿐.”'),
+ N('망치질이 멈췄다. 붉은 화덕의 빛이 카르도의 깊은 주름 사이로 스며들었다.'),
+ S('카르도','“……내 아들 녀석도, 너처럼 무기를 쥐는 법이 참 투박했었지.”'),
+ S('카르도','“그러니 너를 ‘이든’이라고 부르마. 내 아들이 다하지 못한 삶을 대신 살아가 줄 아이…….”'),
+ {setName:'이든'},
+ A(S('센티아','“이든…… 영감님, 그 이름에 담긴 마음이 너무 무겁잖아. 뭐, 이름도 기억 못 하는 이 인형 녀석한테는 평생 갚아야 할 빚 같은 이름이 되겠네.”')),
+ B(S('센수스','“헤헤, 이름도 없던 깡통 시절보다 훨씬 멋진걸? 주인, 이제 누가 부르면 꼭 ‘이든’이라고 대답해야 해? 내가 제일 먼저 불러줄게. 이든! 이든!”')),
+ S('카르도','“중요한 무언가를 찾아야 하는 거지? 하지만 지금 널 내보내기엔 너무 허약해. 나에게 검술을 배우고 가거라. 그 날이 다 나간 검은 내가 갈아주마.”'),
+ hide('sentia','sensus'),
+ battle('kardo'),
+ card('','5년 후'), bg('forge'),
+ N('5년이라는 세월은 소년의 골격을 제법 단단한 청년의 것으로 바꾸어 놓았다.'),
+ show('kardo','r'),
+ S('카르도','“오호, 이제 제법 검 쥐는 폼이 나오는군.”'),
+ A(show('sentia','l'),S('센티아','“하! 이제야 좀 사람 꼴이네. ……같이 튕겨 나간 그 멍청한 센수스 녀석, 아직도 못 찾았잖아. 빨리 가서 찾아와야 할 거 아냐!”')),
+ B(show('sensus','l'),S('센수스','“이든, 오늘은 진짜 가는 거지? 센티아 언니… 아직도 어딘가에 혼자 있을 거야.”')),
+ hide('sentia','sensus'),
+ S('카르도','“자, 이제 정말 갈 때가 되었구나.”'),
+ S('카르도','“5년 전, 그 잿더미 속에서 널 업어왔을 때만 해도 네 녀석이 정말 사람 구실을 하게 될 줄은 몰랐다.”'),
+ show('eden','l'),
+ S('이든','“그럼 다녀오도록 하지, 카르도.”'),
+ S('카르도','“이 녀석 보게? 배움을 준 자에게는 존댓말이라는 걸 써야 하는 법이다. 세상천지에 스승한테 반말 찍찍 내뱉는 놈이 어디 있어?”'),
+ N('몰라서 안 쓴 것이 아니었다. 감정을 표현하는 법이 서툴러 미뤄왔던 예우를, 이제야 꺼내 놓았다.'),
+ S('이든','“……알겠어요. 그럼 다녀오도록 할게요, 스승 카르도.”'),
+ S('카르도','“거 참, 끝까지 기계 같은 녀석이라니까……. 그래, 조심히 다녀오너라.”'),
+ hide('kardo','eden'), bg('wall'),
+ N('마을 외곽, 경계의 성벽. 잿더미가 휘날리는 고가도로 아래, 한 여성이 바위에 앉아 대검의 날을 만지고 있었다.'),
+ show('furor','r'),
+ S('???','“어이, 거기. 발걸음 소리가 너무 가볍잖아. 이 구역은 지금 내 기분만큼이나 뜨거우니까, 타 죽기 싫으면 돌아가시지.”'),
+ N('타오르는 불꽃처럼 붉은 눈동자. 우니타스 소사이어티, 몰레스 팀의 실력자 푸로르였다.'),
+ show('eden','l'),
+ S('이든','“나의 이름은 이든이다. 가야 할 곳이 있으니 비켜라.”'),
+ S('푸로르','“들어본 적 없는 이름인데. 게다가 네 가슴팍… 인식표도 없잖아? 너 같은 무등록자들이 렐리움을 건드려서 자꾸 공허체들을 자극한다고. 덕분에 내 ‘분노’가 가라앉질 않거든.”'),
+ S('푸로르','“우니타스의 규칙은 간단해. 미등록자가 통제 구역을 지나가려면 실력을 증명해야 하지. 내 분노를 받아내 봐라!”'),
+ A(S('센티아','“와우, 이번엔 제대로 뜨거운 녀석인데? 저 열기, 쌓일수록 위험해. 네 공허로 지워버려.”')),
+ B(S('센수스','“으아, 뜨거워! 주인, 저 언니 화가 점점 커지고 있어! 빨리 꺼버려야 해!”')),
+ S('이든','“증거라니, 번거롭군. 비키지 않겠다면 벨 뿐이다.”'),
+ hide('eden'),
+ battle('furor'),
+ show('furor','r'),
+ S('푸로르','“허억, 허억… 방금 대체 뭘 한 거냐? 내 에고웨폰의 출력이 순간적으로 제로가 됐어. 너, 평범한 적응자가 아니군.”'),
+ S('이든','“말했을 텐데. 비키지 않는다면 벨 뿐이라고.”'),
+ S('푸로르','“하! 하하하! 이거 참, 기가 막히는군. 우리 우니타스에서도 내 분노를 이렇게 깔끔하게 잠재운 놈은 없었는데 말이야.”'),
+ sys('획득: 우니타스 임시 인식표 (몰레스)\n마을 검문을 통과할 수 있다.'),
+ S('푸로르','“보통 적응자들은 감정을 증폭시켜 공허에 맞서는데, 네 녀석은 공허를 써서 내 감정을 집어 먹었군. 그건 침략자들의 방식이잖아? 그런데 왜 그 눈은 우리 같은 수호자의 눈을 하고 있는 거지?”'),
+ S('푸로르','“뭐, 상관없나. 이제 넌 우리 우니타스의 ‘임시 동료’니까. 나중에 본부 근처에 오면 술이나 한 잔 사라고, 신입.”'),
+ hide('furor'),
+ N('이든은 자신의 손바닥을 내려다보았다. 공허의 시야로 보았던 푸로르의 분노. 그리고 그것을 삼켜버린 자신의 차가운 힘.'),
+ S('이든','“삭제…… 인가.”'),
+ A(show('sentia','l'),S('센티아','“흥, 너무 깊게 생각하지 마. 넌 그냥 ‘그렇게’ 태어났고, ‘그렇게’ 지켜왔을 뿐이야. 지금 중요한 건 네 과거가 아니라, 어딘가에서 떨고 있는 센수스라고!”')),
+ B(show('sensus','l'),S('센수스','“삭제라고 하지 마! 그건… 주인이 우리를 지키려고 나쁜 것들을 ‘없애주는’ 거잖아! 그러니까 기죽지 마, 주인!”')),
+ hide('sentia','sensus'),
+
+ card('제 2막','통곡의 숲과 뒤틀린 잔향'), {save:1}, bg('forest'),
+ N('기억의 단편을 쫓아 도착한 곳은 ‘통곡의 숲’이었다. 나무들은 비명조차 지르지 못한 채 굳어버린 듯 기괴하게 뒤틀려 있었다.'),
+ S('의문의 소녀','“오지 마! 저리 가라고!”'),
+ S('폴른','“모든 건…… 집행자님을 위하여…….”'),
+ N('안개 너머, 폴른들에게 둘러싸인 한 소녀가 보였다. 거대한 짐가방을 방패 삼아 짧은 단검을 휘두르고 있었으나 역부족이었다.'),
+ S('이든','“지나가야 하는 길에 장애물이 있군. 신속하게 처리하고 이동한다.”'),
+ battle('fallen'),
+ show('nesis','r'),
+ S('의문의 소녀','“가, 감사합니다……. 전 여행 중인 네시스라고 해요. 정말 죽는 줄 알았어요…….”'),
+ N('이든의 눈은 소녀의 안색이 아니라, 그녀가 멘 짐가방 속 내용물을 기계적으로 훑었다. 위험 물질은 없다. 판단이 끝나자 그는 미련 없이 등을 돌렸다.'),
+ S('네시스','“잠깐만요! 저도 근처 ‘침묵의 마을’로 가는 중이에요. 제발 마을까지만 같이 가주시면 안 될까요? 보답은 확실히 할게요!”'),
+ S('이든','“이동 경로 일치. 거절할 이유는 없다. 따라오든지 말든지 알아서 해라.”'),
+ S('네시스','“감사합니다!!”'),
+ hide('nesis'), bg('village'),
+ N('마을 경계를 넘어서자마자 코를 찌른 것은 비린내 섞인 금속향이었다. 부서진 가구들과 흩뿌려진 핏자국만이 남겨져 있었다.'),
+ S('검붉은 제복','“운 좋게 뽑힌 줄 알아라. 네놈들의 영혼이 위대한 집행자님의 거름이 될 테니까!”'),
+ N('비효율적인 살육. 그때, 허리춤의 무구가 부서질 듯 진동하며 날카로운 공명음을 토해냈다.\n그 이끌림은 강압적이었다. 발걸음이 사당 쪽으로 향했다.'),
+ bg('shrine'),
+ N('사당 주변에는 먼지 하나 묻지 않은 순백의 망토를 쓴 자들이, 눈앞의 지옥도가 정해진 연극의 한 장면인 양 무심하게 기록지에 옮겨 적고 있었다.'),
+ A(show('sentia','l'),
+   S('센티아','“이든! 이 불쾌할 정도로 간지러운 기운… 느껴져? 저 안이야. 저 곰팡이 핀 사당 안에 그 멍청이가 있다고!”'),
+   N('제단 위, 주민들이 수호신이라 믿으며 기도를 올리던 공중에 뜬 검. 이든이 그것을 쥐는 순간, 보랏빛 광휘와 함께 울음 섞인 목소리가 터져 나왔다.'),
+   fx('void'), show('sensus','r'),
+   S('센수스','“히잉… 주인? 센티아 언니야? 진짜 언니 목소리야?”'),
+   S('센티아','“하! 너 진짜 꼴이 그게 뭐야? 시너지아의 수치라고, 알아?”'),
+   S('센수스','“으앙, 언니이! 나 진짜 무서웠단 말이야! 하얀 망토 사람들은 자꾸 이상한 기도를 하고, 검은 가면 놈들은 나를 가져가려고 하고……!”')),
+ B(show('sensus','l'),
+   S('센수스','“이든!! 느껴져! 이 근처야! 언니가 저기에 있어!”'),
+   S('마을 노인','“수호신이시여…… 제발 저 검은 가면 쓴 자들로부터 우리를 지켜주소서…….”'),
+   N('제단 위, 공중에 떠 있는 하나의 검. 이든이 무심하게 다가가 그것을 쥐는 순간, 사당 전체를 집어삼키는 찬란한 광휘가 폭발했다.'),
+   fx('void'), show('sentia','r'),
+   S('센티아','“하! 이제야 온 거야? 이 멍청한 주인 녀석! 내가 여기 있으면서 얼마나 시끄러웠는지 알아?”'),
+   S('센수스','“에헤헤, 센티아 언니! 보고 싶었어! 이제 우리 셋이 다시 함께하네!”')),
+ {flag:'reunited'},
+ sys('시너지아의 힘을 되찾았습니다.\n새 기술 「합일 · 공명 베기」'),
+ S('센티아','“치… 시끄러우니까 그만 울어. 이제 합쳐졌으니까 어디 안 가.”'),
+ S('센수스','“헤헤, 언니가 주인 걱정 엄청 많이 했대요! 잠잘 때마다 주인 이름 부르면서…….”'),
+ S('센티아','“야! 너 입 안 다물어?!”'),
+ S('이든','“……시끄럽군.”'),
+ hide('sentia','sensus'),
+ S('하얀 망토 A','“아아… 보십시오. 기록된 예언이 이 자리에서 실현되었습니다. 파편화되었던 신성이 마침내 하나의 그릇으로 모였군요.”'),
+ S('하얀 망토 B','“경배하십시오! 도래할 주인이시여. 당신의 장엄과 비가가 이 땅에 울려 퍼질 차례입니다.”'),
+ N('말이 채 끝나기도 전에, 순백의 망토를 쓴 자들은 하얀 안개가 되어 흔적도 없이 사라졌다.'),
+ S('센티아','“……정말 정체를 알 수 없는 사람들이네. 그보다 이 검은 안개, 뭔가 불길해. 아까 애들과는 차원이 다른 살기야. 조심해, 이든.”'),
+ show('teror','r'),
+ N('검은 안개 속에서 한 여성이 모습을 드러냈다. 바디움 중에서도 고위에 선 자, 두려움의 테로르였다.'),
+ S('테로르','“인간들이여, 절망의 미각을 깨워라. 너희의 두려움이 깊어질수록, 나의 칼날은 더욱 날카롭게 벼려질 것이니.”'),
+ S('테로르','“흥, 제법 맛있는 기운이군. 하지만 내 ‘두려움’의 성역 안에서는 그 어떤 투지도 납처럼 무거워질 뿐이다!”'),
+ show('eden','l'),
+ S('이든','“데이터 분석. 대상의 에너지는 생명체의 감정적 반응에 의존함. 나는 해당 반응 기전이 존재하지 않는다. 즉, 무의미한 간섭이다.”'),
+ S('테로르','“나의 마검은 상대의 심장 박동수를 먹고 자란다. 네 심장이 떨리는 순간, 이 검은 너의 영혼을 절단할 것이다!”'),
+ hide('eden'),
+ battle('teror'),
+ show('teror','r'),
+ S('테로르','“쿨럭…! 하하… 레파르토르의 그 뱀 같은 계집이 말하던 ‘그릇’이… 아니, 오히려 아무것도 없기에 나의 두려움이 스며들 자리가 없었던 건가.”'),
+ hide('teror'),
+ N('테로르의 육신이 검은 연기로 화해 흩어지기 시작했다. 그 연기는 허공으로 사라지는 대신, 자석에 이끌리듯 이든의 손으로 거칠게 빨려 들어갔다.'),
+ {flag:'teror'},
+ sys('고위 바디움 ‘테로르’의 사념을 포획했습니다.\n새 기술 「에고웨폰 · 테로르」'),
+ N('사당의 공기가 기분 나쁠 정도로 차갑게 얼어붙었다. 어둠 속에서 하이힐 소리가 규칙적으로 울려 퍼졌다.'),
+ show('phobia','r'),
+ S('포비아','“아아, 정말이지. 테로르 그 여자, 마지막까지 요란하기는. 당신이 치워주니 정말 편하네요. 고마워요, 이든 님? 아니면… ‘대행자’라고 불러드려야 할까요?”'),
+ S('포비아','“그러고 보니 소개를 안 했네요. 저는 레파르토르의 간부, 두려움의 성흔 포비아라고 해요.”'),
+ S('포비아','“테로르는 그저 당신을 죽이려 했겠지만, 나는 달라요. 나는 당신을… 아주 예쁘게 망가뜨려서 우리 레파르토르의 ‘완성품’으로 만들러 왔거든요.”'),
+ S('센티아','“이든! 조심해! 저 여자는 아까 그 멍청이랑 달라. 저건 진짜 ‘성흔’의 힘이야!”'),
+ S('이든','“소환. 에고웨폰, 테로르.”'),
+ S('포비아','“어머, 죽은 자의 영혼까지 부리는 건가요? 이젠 누가 악역인지 모르겠어요.”'),
+ show('nesis','l'),
+ S('네시스','“아니에요! 이든 님은… 이든 님은 우리를 지키기 위해서 어쩔 수 없이 그러시는 거라고요! 함부로 말하지 마세요!”'),
+ hide('nesis'),
+ S('포비아','“후후. 그런데 알아요? 당신이 부리는 그 ‘도구’에 서린 두려움도, 결국 내 먹이거든요.”'),
+ S('포비아','“자, 당신은 저에게 어떤 두려움의 소리를 선사해 줄 건가요?”'),
+ battle('phobia'),
+ show('phobia','r'),
+ S('포비아','“하… 하하하. 집행자님께서 공들여 찾던 그릇이… 이런 재앙 덩어리였다니. 하지만 좋아, 이든. 내 성흔을 삼킨 대가는 곧 치르게 될 거야. 그 안에서 자라날 비명이 기대되는걸…….”'),
+ hide('phobia'),
+ N('이든은 대답 대신 검을 내리꽂았다. 그 중심에서 영롱하게 빛나는 [두려움의 성흔]의 정수가 그의 손으로 빨려 들어갔다.'),
+ sys('두려움의 성흔(포비아) 흡수 완료.\n‘공허’의 내벽에 첫 번째 균열이 발생합니다.\n감정 동기화율 1.2% 상승.'),
+ fx('beat'),
+ N('아무것도 담기지 않았던 텅 빈 심연 위로, 포비아가 남긴 ‘두려움’이 들러붙었다.\n등줄기를 타고 흐르는 식은땀. 불규칙하게 요동치는 심장 박동.'),
+ S('이든','“……비효율적인 맥동이다. 신체 제어 능력이 일시적으로 저하되고 있군.”'),
+ show('nesis','r'),
+ S('네시스','“이든 님, 괜찮으세요? 표정이 너무 안 좋아 보여요. 방금 그 검은 기운이 이든 님 안으로 들어간 거죠? 정말 죄송해요… 저 때문에. 제가 아는 약초 중에 마음을 진정시키는 게 있을 거예요.”'),
+ hide('nesis'),
+ N('네시스가 약초를 구하러 간 사이, 갈비뼈를 부술 듯 날뛰던 심장은 다시 차가운 시계추처럼 일정하게 박동하기 시작했다.'),
+ show('nesis','r'),
+ S('네시스','“이든 님! 여기요, 이거……! 향을 맡으면 조금 나아질 거예요. 제가…… 제가 더 빨리 찾아왔어야 했는데…….”'),
+ N('이미 신체 상태는 회복되어 약초 따위는 필요 없었다. 그러나 그는 ‘효율적인 동행’을 위해 그녀의 성의를 거절하지 않았다.'),
+ S('이든','“……고맙다. 상태는 이미 안정되었다. 지체할 시간 없다. 다음 구역으로 이동한다.”'),
+ S('네시스','“정말 다행이에요……. 정말로요.”'),
+ N('네시스는 안도의 한숨을 내쉬며 이든의 소매 끝을 조심스럽게 잡았다.'),
+ hide('nesis'),
+
+ card('제 2막 에필로그','젖어드는 슬픔'), {save:1}, bg('forge'),
+ N('대장간 문을 열자, 화덕의 열기보다 더 무겁고 거친 망치질 소리가 들려왔다.'),
+ show('kardo','r'),
+ S('카르도','“……돌아왔군. 두려움을 먹어치운 녀석치고는 발걸음이 가벼워. 하지만 풍기는 기운은 전보다 훨씬 날카롭군.”'),
+ S('이든','“정비가 필요합니다. 그리고… 카르도, 다시 소개해야 할 이들이 있습니다.”'),
+ N('등에 맨 두 개의 검에서 따스한 빛무리가 쏟아져 나오며, 두 존재가 현신했다.'),
+ show('sentia','l'), show('sensus','c'),
+ A(S('센티아','“오랜만이네요, 카르도 어르신. 당신이 수선해준 내 칼날은 테로르와 포비아의 공격을 뚫기에 충분했어요. 하지만… 여전히 작업 방식은 지나치게 고전적이네요.”'),
+   S('카르도','“허, 여전히 그 까칠한 주둥아리는 여전하군. 네 주인은 감정이 없는데, 무기라는 녀석이 주인 몫까지 성깔을 부리니 이든이 고생이 많겠어.”'),
+   N('카르도의 시선이 이든의 옷자락을 꼭 붙잡고 반쯤 몸을 숨긴 센수스에게 머물렀다.')),
+ B(S('센수스','“할아버지! 나 왔어요! 이든님이랑 무서운 괴물도 물리쳤단 말이에요! 그런데… 할아버지, 왜 이렇게 손이 차가워졌어요? 대장간 불은 이렇게 뜨거운데… 왜…….”'),
+   N('카르도는 묵묵히 센수스가 잡은 손을 빼냈다.'),
+   S('카르도','“이 녀석, 여전하구나. 오느라 고생했다, 센수스.”'),
+   S('센티아','“이곳이 이든의 탄생점인가요? 예상보다 훨씬… ‘고전적’이네요.”'),
+   S('카르도','“허, 네 녀석이 바로 그 ‘센티아’로군. 소문대로 입에 면도날을 물고 태어났어.”')),
+ S('이든','“……이미 제가 다룰 무기는 충분합니다. 어째서 제가 없는 동안에도 이렇게 많은 무기를 벼리신 겁니까?”'),
+ S('카르도','“공허의 균열이 마을 어귀까지 내려왔다! 너 혼자 세상 모든 괴물을 잡을 순 없어. 마을 놈들에게도 제 몸 지킬 칼 한 자루는 쥐여줘야 할 것 아니냐!”'),
+ S('카르도','“이든, 잘 들어라. 센수스는 네 마음을 울릴 것이고, 센티아는 네 길을 닦을 게다. 저 녀석들을 무기가 아니라 ‘영혼의 조각’으로 여기게 된 순간, 너는 비로소 인간이 되는 게야. 알겠느냐?”'),
+ S('이든','“알겠습니다. 몸 조리하십시오, 카르도.”'),
+ hide('kardo','sentia','sensus'),
+ {end:1}
+];
+
+/* ═══════════ 상태 ═══════════ */
+let G={i:0,partner:'A',edenName:'대행자',flags:{},losses:0,absorbed:0};
+let auto=false, typing=null, advanceResolve=null, logArr=[];
+
+/* ═══════════ 비주얼 노벨 엔진 ═══════════ */
+const sprites={};
+function setBg(name,opt={}){$('bg').className='layer bg-'+name;FX.set(name);$('rift').style.opacity=opt.rift?1:0}
+function showSpr(id,pos){let el=sprites[id];
+  if(!el){el=document.createElement('div');el.className='spr'+(SPIRIT[id]?' spirit':'');el.innerHTML=`<img src="${CHAR[id]}" alt="">`;$('sprites').appendChild(el);sprites[id]=el}
+  el.style.left=POS[pos||'c']+'%';requestAnimationFrame(()=>el.classList.add('on'))}
+function hideSpr(ids){for(const id of ids){const el=sprites[id];if(el)el.classList.remove('on','talk')}}
+function hideAll(){for(const id in sprites)sprites[id].classList.remove('on','talk')}
+function highlight(who){const id=SPEAKER[who];for(const k in sprites){sprites[k].classList.toggle('talk',k===id)}}
+
+// 간단하고 확실한 타자기
+function typeLine(str,cls){const el=$('text');el.className=cls||'';$('box').classList.remove('done');
+  if(typing){clearInterval(typing.h)}
+  let i=0;el.textContent='';
+  return new Promise(res=>{const done=()=>{clearInterval(h);el.textContent=str;$('box').classList.add('done');typing=null;res()};
+    const h=setInterval(()=>{i+=1;el.textContent=str.slice(0,i);if(i>=str.length)done()},26);
+    typing={h,done}})}
+function waitTap(){return new Promise(r=>{advanceResolve=r;if(auto){const len=$('text').textContent.length;setTimeout(()=>{if(advanceResolve===r){advanceResolve=null;r()}},1100+len*35)}})}
+function onTap(){SFX.play('ui');if(typing){typing.done();return}if(advanceResolve){const r=advanceResolve;advanceResolve=null;r()}}
+$('box').addEventListener('click',onTap);
+$('vn').addEventListener('click',e=>{if(e.target===$('vn'))onTap()});
+addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&$('vn').style.display!=='none'&&!$('act').classList.contains('on')&&!$('title').style.display.includes('flex')){e.preventDefault();onTap()}});
+
+async function say(name,text,kind){
+  $('vn').style.display='block';
+  $('name').textContent=name||'';
+  if(name)highlight(name);else for(const k in sprites)sprites[k].classList.remove('talk');
+  logArr.push({name,text});
+  await typeLine(text,kind);await waitTap();
+}
+async function toast(t,ms=2400){const el=$('toast');el.textContent=t;el.classList.add('on');SFX.play('void');await wait(ms);el.classList.remove('on');await wait(400)}
+async function showCard(act,ttl){$('cardAct').textContent=act;$('cardTtl').textContent=ttl;$('vn').style.display='none';$('card').classList.add('on');await wait(2300);hideAll();$('card').classList.remove('on');await wait(700)}
+async function doFx(f){
+  if(f==='shake'){stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');SFX.play('heavy')}
+  if(f==='flash'){stage.classList.remove('flash');void stage.offsetWidth;stage.classList.add('flash');stage.classList.add('shake');SFX.play('heavy');setTimeout(()=>stage.classList.remove('flash','shake'),700)}
+  if(f==='void'){SFX.play('void');const e=$('eye');e.classList.add('on');await wait(1500);e.classList.remove('on');await wait(300)}
+  if(f==='beat'){stage.classList.remove('beat');void stage.offsetWidth;stage.classList.add('beat');SFX.play('hurt');setTimeout(()=>stage.classList.remove('beat'),2300)}
+}
+function choose(q,opts){return new Promise(res=>{const c=$('choice');c.innerHTML=`<div class="q">${q.replace(/\n/g,'<br>')}</div>`;
+  for(const o of opts){const b=document.createElement('button');b.className='opt';b.innerHTML=`<img src="${o.img}" alt=""><div><b>${o.t}</b><span>${o.d}</span></div>`;
+    b.onclick=()=>{SFX.play('void');c.classList.remove('on');res(o.k)};c.appendChild(b)}c.classList.add('on')})}
+
+function nameOf(who){return who==='대행자'?G.edenName:who}
+function save(){store.set('as0_save',{...G})}
+
+async function runCmd(c){
+  if(c.if){if(c.if===G.partner)for(const x of c.c)await runCmd(x);return}
+  if('n' in c)return say('',c.n,'narr');
+  if('s' in c){const who=c.s==='대행자'?G.edenName:c.s;return say(who,c.t)}
+  if(c.bg){setBg(c.bg,c);return}
+  if(c.show){showSpr(c.show,c.pos);return}
+  if(c.hide){hideSpr(c.hide);return}
+  if(c.fx)return doFx(c.fx);
+  if(c.sys){$('vn').style.display='block';$('name').textContent='';logArr.push({name:'시스템',text:c.sys});await typeLine(c.sys,'sys');SFX.play('void');return waitTap()}
+  if(c.card)return showCard(c.card[0],c.card[1]);
+  if(c.choice){G.partner=await choose(c.choice,c.opts);return}
+  if(c.setName){G.edenName=c.setName;return}
+  if(c.flag){G.flags[c.flag]=1;if(c.flag==='teror')G.absorbed++;return}
+  if(c.save){save();return}
+  if(c.battle){save();$('vn').style.display='none';hideAll();const keepBg=$('bg').className;
+    await Action.run(c.battle,{partner:G.partner,flags:G.flags,name:G.edenName,onLose:()=>G.losses++});
+    $('bg').className=keepBg;$('vn').style.display='block';return}
+  if(c.end){G.absorbed=Math.max(G.absorbed,2);store.del('as0_save');return showEnd()}
+}
+async function play(from){G.i=from;
+  while(G.i<SCRIPT.length){const c=SCRIPT[G.i];await runCmd(c);G.i++;}
+}
+
+/* ═══════════ 전투 ═══════════ */
+/* ═══════════ 전투 중 대사 ═══════════ */
+window.VN={async say(n,t){const vn=$('vn');vn.style.display='block';vn.style.zIndex=40;await say(n,t,n?'':'narr');vn.style.zIndex='';vn.style.display='none'}};
+
+/* ═══════════ 엔딩 ═══════════ */
+function showEnd(){$('vn').style.display='none';$('hud').style.display='none';
+  $('endStats').innerHTML=`<dt>함께한 시너지아</dt><dd>${G.partner==='A'?'센티아 (이성)':'센수스 (본성)'} → 합일</dd><dt>계승한 사념</dt><dd>테로르, 포비아</dd><dt>쓰러진 횟수</dt><dd>${G.losses}</dd>`;
+  $('end').classList.add('on');return new Promise(()=>{})}
+$('endBtn').onclick=()=>location.reload();
+
+/* ═══════════ 타이틀 / HUD ═══════════ */
+function startFrom(i){$('title').style.display='none';$('hud').style.display='flex';SFX.play('void');play(i)}
+const sv=store.get('as0_save');$('tCont').disabled=!sv;
+$('tNew').onclick=()=>{store.del('as0_save');G={i:0,partner:'A',edenName:'대행자',flags:{},losses:0,absorbed:0};startFrom(0)};
+$('tCont').onclick=()=>{const s=store.get('as0_save');if(!s)return;G=s;
+  // 저장 위치 직전의 배경을 복원
+  let b='black';for(let k=0;k<=s.i;k++)if(SCRIPT[k].bg)b=SCRIPT[k].bg;setBg(b);startFrom(s.i)};
+$('hud').style.display='none';
+$('bAuto').onclick=e=>{e.stopPropagation();auto=!auto;$('bAuto').classList.toggle('on',auto);if(auto&&advanceResolve&&!typing){const r=advanceResolve;advanceResolve=null;r()}};
+$('bSnd').onclick=e=>{e.stopPropagation();SFX.on=!SFX.on;$('bSnd').textContent=SFX.on?'소리 켬':'소리 끔'};
+$('bLog').onclick=e=>{e.stopPropagation();$('logList').innerHTML=logArr.slice(-80).map(l=>`<p>${l.name?`<b>${l.name}</b>`:''}${l.text.replace(/\n/g,'<br>')}</p>`).join('');$('log').classList.add('on');$('log').scrollTop=1e6};
+$('logClose').onclick=()=>$('log').classList.remove('on');
+$('bMenu').onclick=e=>{e.stopPropagation();location.reload()};
+</script>
+</body>
+</html>
