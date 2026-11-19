@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+<!-- 액팅 소울 : 0 — index.html  v0.3.0 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#0f0c1a">
 <link rel="icon" href="img/ic_void.webp">
-<title>액팅 소울 : 0 — 체험판</title>
+<title>액팅 소울 : 0 — 3D 액션 체험판</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Dodum&display=swap" rel="stylesheet">
@@ -294,7 +295,7 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
       <button class="tbtn" id="tNew">처음부터</button>
       <button class="tbtn" id="tCont">이어하기</button>
     </div>
-    <div class="ver">v0.2.0 · 3D 액션 체험판 · 제 0막 ~ 제 2막 에필로그</div>
+    <div class="ver">v0.3.0 · 3D 액션 체험판 · 제 0막 ~ 제 2막 에필로그</div>
   </div>
 
   <div id="end" class="layer">
@@ -306,7 +307,13 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
   </div>
 </div>
 
-<script src="action.js"></script>
+<!-- 3D 전투: 엔진 → 이펙트 → 무기 → 캐릭터 → 배경 → 전투 규칙 순서로 불러온다 -->
+<script src="engine.js?v=0.3.0"></script>
+<script src="effects.js?v=0.3.0"></script>
+<script src="weapons.js?v=0.3.0"></script>
+<script src="avatars.js?v=0.3.0"></script>
+<script src="stages.js?v=0.3.0"></script>
+<script src="action.js?v=0.3.0"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -326,7 +333,7 @@ window.SFX={on:true,ctx:null,
   }catch(e){} }};
 
 /* ═══════════ 배경 입자 ═══════════ */
-const FX=(()=>{const cv=$('fxCanvas'),cx=cv.getContext('2d');let P=[],cfg=null,W,H;
+const BGFX=(()=>{const cv=$('fxCanvas'),cx=cv.getContext('2d');let P=[],cfg=null,W,H;
   const cfgs={rift:{n:60,col:'200,195,215',vy:[.3,.9],vx:[-.2,.2],r:[1,2.2],a:.5},ruin:{n:50,col:'180,170,170',vy:[.2,.6],vx:[-.3,.1],r:[1,2],a:.4},
     forge:{n:40,col:'255,150,60',vy:[-1.2,-.4],vx:[-.3,.3],r:[1,2.4],a:.8},wall:{n:55,col:'255,110,70',vy:[-.9,-.3],vx:[-.4,.4],r:[1,2.2],a:.6},
     forest:{n:14,col:'170,190,180',vy:[-.05,.05],vx:[.1,.35],r:[40,90],a:.05},village:{n:40,col:'200,160,160',vy:[.2,.5],vx:[-.2,.2],r:[1,2],a:.35},
@@ -582,7 +589,7 @@ let auto=false, typing=null, advanceResolve=null, logArr=[];
 
 /* ═══════════ 비주얼 노벨 엔진 ═══════════ */
 const sprites={};
-function setBg(name,opt={}){$('bg').className='layer bg-'+name;FX.set(name);$('rift').style.opacity=opt.rift?1:0}
+function setBg(name,opt={}){$('bg').className='layer bg-'+name;BGFX.set(name);$('rift').style.opacity=opt.rift?1:0}
 function showSpr(id,pos){let el=sprites[id];
   if(!el){el=document.createElement('div');el.className='spr'+(SPIRIT[id]?' spirit':'');el.innerHTML=`<img src="${CHAR[id]}" alt="">`;$('sprites').appendChild(el);sprites[id]=el}
   el.style.left=POS[pos||'c']+'%';requestAnimationFrame(()=>el.classList.add('on'))}
