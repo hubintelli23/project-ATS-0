@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — avatars.js  v0.3.0
+/* 액팅 소울 : 0 — avatars.js  v0.4.0
    아바타(캐릭터) 정의 + 관절 리그 + 동작(애니메이션)
 
    ■ 캐릭터를 바꾸거나 추가하는 법
@@ -124,9 +124,13 @@ function posePose(cfg,name,k,t,armed,armedL){const rest=restPose(cfg,armed,armed
     case'stun':p=Object.assign({},rest,{spine:[.25,0,0],chest:[.35,0,.12],head:[.45,0,0],shL:[.15,0,.05],shR:[.15,0,-.05],elR:[-.2,0,0],hdR:[-.2,0,0],knL:[.45,0,0],knR:[.45,0,0],thL:[-.3,0,0],thR:[-.3,0,0],_down:.12});break;
     case'dead':p=Object.assign({},rest,{chest:[-.2,0,0],shL:[-.3,0,1.2],shR:[-.3,0,-1.2],_pitch:-1.45,_down:.75});break;
     case'cast':p=attackPose('cast',k,rest);break;
+    case'charge':{const tr=Math.sin(t*40)*.02;p=Object.assign({},rest,ATK.V.A);p.chest=[-.3+tr,-.2,0];p.thL=[-.35,0,0];p.knL=[.45,0,0];p.knR=[.3,0,0];p._down=.08;break}
+    case'dash':p=Object.assign({},rest,{chest:[.55,0,0],spine:[.2,0,0],shL:[.9,0,.25],shR:[.7,0,-.2],elR:[-.2,0,0],hdR:[-.5,0,0],thL:[-.9,0,0],knL:[.8,0,0],thR:[.7,0,0],knR:[.6,0,0],_down:.1});break;
+    case'jump':p=Object.assign({},rest,{chest:[.1,0,0],thL:[-1.0,0,0],knL:[1.4,0,0],thR:[-.35,0,0],knR:[1.0,0,0],shL:[-.6,0,.5]});break;
+    case'plunge':p=Object.assign({},rest,{chest:[.4,0,0],shR:[-.35,0,-.05],elR:[-.15,0,0],hdR:[.15,0,0],thL:[-1.1,0,0],knL:[1.5,0,0],thR:[-.6,0,0],knR:[1.2,0,0]});break;
     case'idle':p=Object.assign({},rest);p.chest=[(p.chest?p.chest[0]:0)+Math.sin(t*2)*.025,0,0];p._bob=Math.sin(t*2)*.008;break;
     default:p=attackPose(name,k,rest)}
-  if(cfg.twoHand&&name!=='run'&&name!=='hurt'&&name!=='dead'&&name!=='stun')twoHand(p);
+  if(cfg.twoHand&&!['run','hurt','dead','stun','dash','jump'].includes(name))twoHand(p);
   return p}
 
 /* ═══════════ 생성 ═══════════ */
@@ -136,7 +140,7 @@ window.Avatars={create(id,opt){const cfg=Object.assign({},AVATARS[id]||AVATARS.e
   const W=JOINTS.map(()=>null);
   const self={id,cfg,weaponR:cfg.weaponR,weaponL:cfg.weaponL,scale:cfg.scale||1,
     // name: idle | run | dodge | parry | hurt | stun | dead | cast | H1 | H2 | V | stab | spin, k: 동작 진행도 0~1
-    play(name,k){target=posePose(cfg,name,k||0,performance.now()/1000,!!self.weaponR,!!self.weaponL);rate=(name==='H1'||name==='H2'||name==='V'||name==='stab'||name==='spin')?32:name==='dead'?5:16},
+    play(name,k){target=posePose(cfg,name,k||0,performance.now()/1000,!!self.weaponR,!!self.weaponL);rate=(name==='H1'||name==='H2'||name==='V'||name==='stab'||name==='spin'||name==='plunge'||name==='dash')?32:name==='dead'?5:16},
     update(dt){if(!target)return;const a=1-Math.exp(-rate*dt);
       for(let i=0;i<JOINTS.length;i++){const tg=target[JOINTS[i][0]]||[0,0,0],r=rot[i];r[0]+=(tg[0]-r[0])*a;r[1]+=(tg[1]-r[1])*a;r[2]+=(tg[2]-r[2])*a}
       down+=((target._down||0)-down)*a;pitch+=((target._pitch||0)-pitch)*a;bob=target._bob||0},

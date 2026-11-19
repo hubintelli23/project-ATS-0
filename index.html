@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 액팅 소울 : 0 — index.html  v0.3.0 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
+<!-- 액팅 소울 : 0 — index.html  v0.4.0 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -133,10 +133,15 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
 #act{display:none;z-index:15;touch-action:none}
 #act.on{display:block}
 #gl{position:absolute;inset:0;width:100%;height:100%}
+#lookZone{position:absolute;inset:0}
 #vfx{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,transparent 30%,rgba(40,20,110,.55) 80%,rgba(0,0,0,.85));mix-blend-mode:multiply}
 #vfx.on{animation:vfx 1.6s ease-out}
 @keyframes vfx{0%{opacity:1;backdrop-filter:grayscale(1) contrast(1.2)}70%{opacity:.8}100%{opacity:0}}
-.ab{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));pointer-events:none}
+.kb{display:inline-block;min-width:18px;padding:1px 5px;margin-left:5px;border:1px solid rgba(201,197,214,.55);border-radius:3px;font:600 10.5px/1.4 var(--sans);color:#fff;background:rgba(0,0,0,.4);text-align:center}
+body.touch .kb{display:none}
+/* 보스 체력: 위 가운데 */
+.ab{position:absolute;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top));width:min(560px,calc(100% - 24px));pointer-events:none;text-align:center}
+body.touch .ab{left:12px;transform:none;width:calc(100% - 128px);text-align:left}
 .ab .nm{font-family:var(--serif);font-weight:800;font-size:20px;color:#fff;text-shadow:0 2px 8px #000}
 .ab .sb{font-size:12px;color:#c3bdd3;text-shadow:0 1px 4px #000;margin-top:1px}
 .bar{position:relative;height:9px;background:rgba(20,17,30,.85);border:1px solid rgba(201,197,214,.35);margin-top:7px;overflow:hidden}
@@ -145,50 +150,130 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
 .bar .jm{position:absolute;top:-2px;bottom:-2px;left:25%;width:2px;background:var(--void);box-shadow:0 0 6px var(--void)}
 .ab .hn{font-size:11px;color:#c9c5d6;text-align:right;margin-top:2px;text-shadow:0 1px 3px #000}
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;min-height:20px}
+.ab .chips{justify-content:center}body.touch .ab .chips{justify-content:flex-start}
 .chip{font-size:11.5px;padding:2px 7px;border:1px solid;border-radius:2px;background:rgba(10,8,18,.75)}
 .chip.red{border-color:#c2493a;color:#ffb3a5}.chip.vio{border-color:#8a4fd0;color:#dcc2ff}.chip.gry{border-color:#777;color:#ccc}
-#acall{position:absolute;left:0;right:0;top:27%;text-align:center;font-family:var(--serif);font-weight:800;font-size:19px;color:#fff;text-shadow:0 0 12px #000,0 0 3px #000;opacity:0;transform:translateY(6px);transition:.15s;pointer-events:none}
+/* 미니맵 */
+#mini{position:absolute;pointer-events:none}
+body.pc #mini{left:20px;top:18px;width:150px}
+body.touch #mini{right:10px;top:calc(56px + env(safe-area-inset-top));width:86px}
+#miniC{width:100%;height:auto;display:block}
+#miniName{font-size:11px;color:#c9c5d6;text-align:center;margin-top:3px;text-shadow:0 1px 3px #000}
+/* 위 오른쪽: 지도 · 설정 */
+.topbtn{position:absolute;right:10px;top:calc(12px + env(safe-area-inset-top));display:flex;gap:6px}
+body.pc .topbtn{right:20px;top:18px}
+.tb{font-size:12.5px;padding:6px 10px;border:1px solid rgba(201,197,214,.35);background:rgba(15,12,26,.75);border-radius:3px;color:var(--silver);cursor:pointer}
+/* 화면 가운데 알림 · 피해 숫자 */
+#acall{position:absolute;left:0;right:0;top:26%;text-align:center;font-family:var(--serif);font-weight:800;font-size:19px;color:#fff;text-shadow:0 0 12px #000,0 0 3px #000;opacity:0;transform:translateY(6px);transition:.15s;pointer-events:none}
 #acall.on{opacity:1;transform:none}#acall.org{color:#ffc27a}#acall.red{color:#ff8c8c}#acall.vio{color:#d6c8ff}
 .anum{position:absolute;transform:translate(-50%,-50%);font-family:var(--serif);font-weight:800;font-size:24px;color:#fff;text-shadow:0 0 8px #000,0 0 2px #000;pointer-events:none;animation:pop .9s forwards}
 .anum.big{font-size:32px;color:#ffe2a8}.anum.me{color:#ff8d7a}.anum.heal{color:#9dffb8}
 @keyframes pop{0%{opacity:0;margin-top:0;scale:.6}15%{opacity:1;scale:1.15}100%{opacity:0;margin-top:-50px;scale:1}}
-.pl{position:absolute;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));width:44%;display:flex;gap:9px;align-items:flex-end;pointer-events:none}
+/* 상호작용 안내 (컴퓨터) */
+#prompt{position:absolute;left:calc(50% + 70px);top:54%;display:none;align-items:center;gap:8px;padding:8px 14px 8px 10px;background:rgba(15,12,26,.86);border:1px solid rgba(201,197,214,.45);border-left:3px solid #ffd36a;border-radius:3px;font-family:var(--serif);font-size:15px;pointer-events:none}
+body.pc #prompt.on{display:flex}
+#prompt .kb{margin:0;font-size:13px;padding:2px 8px}
+#offArrow{position:absolute;width:0;height:0;border-left:18px solid rgba(255,90,106,.9);border-top:11px solid transparent;border-bottom:11px solid transparent;display:none;pointer-events:none;filter:drop-shadow(0 0 4px #000)}
+#offArrow.on{display:block}#offArrow.warn{border-left-color:#ffb15c}
+/* 이든 상태 */
+.pl{position:absolute;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));width:44%;max-width:330px;display:flex;gap:9px;align-items:flex-end;pointer-events:none}
+body.pc .pl{left:24px;bottom:24px;width:330px}
+body.touch .pl{top:calc(96px + env(safe-area-inset-top));bottom:auto;align-items:flex-start;width:calc(100% - 128px);max-width:300px}
+body.touch .ring{width:52px;height:52px}
 .ring{position:relative;width:62px;height:62px;flex:none;border-radius:50%;background:conic-gradient(var(--void) calc(var(--v)*1%),rgba(34,30,48,.9) 0)}
+body.pc .ring{width:74px;height:74px}
 .ring::before{content:"";position:absolute;inset:4px;border-radius:50%;background:#000;box-shadow:inset 0 0 14px rgba(143,123,255,.5)}
-.ring img{position:absolute;inset:6px;width:50px;height:50px;border-radius:50%;object-fit:cover;object-position:50% 6%}
+.ring img{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);border-radius:50%;object-fit:cover;object-position:50% 6%}
 .ring.full{animation:ringpulse 1.2s infinite}
 @keyframes ringpulse{50%{box-shadow:0 0 20px var(--void)}}
 .pst{flex:1;font-size:11px;color:#d9d4e6;text-shadow:0 1px 3px #000}
+body.pc .pst{font-size:12px}
 .pst .row{display:flex;justify-content:space-between;margin-top:3px}
 .pst .bar{height:7px;margin-top:2px}
 .pst .hp i{background:linear-gradient(90deg,#2f6f63,#58c6a6)}
+.pst .ul i{background:linear-gradient(90deg,#8a6a20,#ffd36a)}
 .pst .sy i{background:linear-gradient(90deg,#4b2b6a,#c06bff)}
 #syncRow.hot .sy i{background:linear-gradient(90deg,#8a2c6a,#ff5dbd)}
-#joyZone{position:absolute;left:0;top:22%;width:52%;bottom:96px}
+/* 컴퓨터: 스킬 바 (오른쪽 아래) */
+.skills{position:absolute;right:28px;bottom:30px;display:none;gap:12px;align-items:flex-end}
+body.pc .skills{display:flex}
+.sk{position:relative;width:76px;height:76px;border:1px solid rgba(201,197,214,.45);background:radial-gradient(circle at 50% 35%,rgba(48,42,66,.94),rgba(16,13,26,.94));border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer}
+.sk b{position:relative;font-family:var(--serif);font-size:12.5px;line-height:1.25;color:#fff;padding:0 5px;word-break:keep-all}
+.sk .kb{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);margin:0;z-index:2}
+.sk .cd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 22px var(--sans);color:#fff;background:rgba(0,0,0,.5);border-radius:8px;z-index:1}
+.sk .cd:empty{display:none}
+.sk.off{opacity:.5}.sk.ready{box-shadow:0 0 14px var(--void);border-color:var(--void)}
+.sk.ult{width:92px;height:92px;border-radius:50%;background:conic-gradient(#ffd36a calc(var(--u,0)*1%),rgba(34,30,48,.94) 0);border-color:rgba(255,211,106,.6)}
+.sk.ult::before{content:"";position:absolute;inset:5px;border-radius:50%;background:radial-gradient(circle at 50% 35%,rgba(58,48,30,.96),rgba(18,14,10,.96))}
+.sk.ult.ready{box-shadow:0 0 18px #ffd36a;border-color:#ffd36a}
+.keys{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;font-size:12px;color:rgba(201,197,214,.62);pointer-events:none;display:none;white-space:nowrap;text-shadow:0 1px 3px #000}
+body.pc .keys{display:block}
+/* 휴대폰: 조이스틱 · 버튼 */
+#joyZone{position:absolute;left:0;top:32%;width:48%;bottom:120px}
+body.pc #joyZone,body.pc .pad,body.pc #bInteract{display:none}
 #joyBase{position:absolute;width:104px;height:104px;margin:-52px 0 0 -52px;border-radius:50%;border:1px solid rgba(201,197,214,.35);background:rgba(15,12,26,.35);opacity:0;pointer-events:none}
 #joyBase.on{opacity:1}
 #joyKnob{position:absolute;left:50%;top:50%;width:46px;height:46px;border-radius:50%;background:rgba(201,197,214,.55);transform:translate(-50%,-50%)}
-.joyhint{position:absolute;left:12%;bottom:30%;font-size:12px;color:rgba(201,197,214,.45);pointer-events:none}
-.pad{position:absolute;right:10px;bottom:calc(12px + env(safe-area-inset-bottom));width:208px;height:218px}
-.pb{position:absolute;border-radius:50%;border:1px solid rgba(201,197,214,.45);background:radial-gradient(circle at 50% 35%,rgba(48,42,66,.92),rgba(16,13,26,.92));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none}
-.pb b{font-family:var(--serif);font-size:14px;line-height:1.1}.pb span{font-size:10px;color:#c9c5d6;min-height:0}
+.joyhint{position:absolute;left:12%;bottom:28%;font-size:12px;color:rgba(201,197,214,.45);pointer-events:none}
+.pad{position:absolute;right:8px;bottom:calc(10px + env(safe-area-inset-bottom));width:236px;height:236px;pointer-events:none}
+.pb{position:absolute;border-radius:50%;border:1px solid rgba(201,197,214,.45);background:radial-gradient(circle at 50% 35%,rgba(48,42,66,.92),rgba(16,13,26,.92));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;pointer-events:auto}
+.pb b{font-family:var(--serif);font-size:13px;line-height:1.1}.pb span{font-size:10px;color:#c9c5d6}
 .pb:active{transform:scale(.94);border-color:#fff}
-.pb.off{opacity:.38}
-#bAtk{right:0;bottom:0;width:86px;height:86px}#bAtk b{font-size:18px}
-#bDodge{right:96px;bottom:2px;width:62px;height:62px}
-#bParry{right:8px;bottom:96px;width:62px;height:62px;border-color:rgba(255,170,80,.7)}
-#bVoid{right:84px;bottom:76px;width:54px;height:54px;border-color:rgba(143,123,255,.75)}
-#bVoid.ready{box-shadow:0 0 16px var(--void)}
-#bSkill{right:150px;bottom:70px;width:50px;height:50px}
-#bSwap{right:70px;bottom:146px;width:50px;height:50px;border-color:rgba(192,107,255,.7)}
-#bJudge{left:50%;bottom:calc(250px + env(safe-area-inset-bottom));transform:translateX(-50%);width:auto;padding:12px 26px;border-radius:2px;border:1px solid #fff;background:radial-gradient(circle,#5a42c8,#170f33);font-family:var(--serif);font-weight:800;font-size:18px;display:none;animation:ringpulse 1s infinite}
-#bJudge.on{display:block}
-#atip{position:absolute;left:12px;right:12px;top:calc(96px + env(safe-area-inset-top));display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:rgba(15,12,26,.9);border:1px solid rgba(143,123,255,.5);border-radius:2px;font-size:13.5px;line-height:1.5;opacity:0;transition:.3s;pointer-events:none}
+.pb.off{opacity:.4}.pb.ready{box-shadow:0 0 14px var(--void);border-color:var(--void)}
+#tAtk{right:0;bottom:0;width:84px;height:84px}#tAtk b{font-size:17px}
+#tDodge{right:92px;bottom:2px;width:58px;height:58px}
+#tJump{right:4px;bottom:92px;width:58px;height:58px}
+#tDash{right:158px;bottom:6px;width:48px;height:48px}
+#tQ{right:74px;bottom:70px;width:50px;height:50px;border-color:rgba(143,123,255,.75)}
+#tE{right:136px;bottom:62px;width:50px;height:50px}
+#tR{right:66px;bottom:132px;width:58px;height:58px;background:conic-gradient(#ffd36a calc(var(--u,0)*1%),rgba(34,30,48,.94) 0);border-color:rgba(255,211,106,.6)}
+#tR.ready{box-shadow:0 0 16px #ffd36a;border-color:#ffd36a}
+#tSwap{right:136px;bottom:122px;width:46px;height:46px;border-color:rgba(192,107,255,.7)}
+#bInteract{right:150px;bottom:calc(196px + env(safe-area-inset-bottom));width:auto;height:44px;padding:0 16px;border-radius:22px;display:none;flex-direction:row;gap:6px;border-color:#ffd36a}
+#bInteract.on{display:flex}
+/* 튜토리얼 · 파트너 힌트 */
+#atip,#atut{position:absolute;left:12px;right:12px;top:calc(98px + env(safe-area-inset-top));pointer-events:none}
+body.touch #atip,body.touch #atut{right:108px;top:calc(206px + env(safe-area-inset-top))}
+body.pc #atip,body.pc #atut{left:20px;right:auto;top:220px;width:360px}
+#atip{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:rgba(15,12,26,.9);border:1px solid rgba(143,123,255,.5);border-radius:2px;font-size:13.5px;line-height:1.5;opacity:0;transition:.3s}
 #atip.on{opacity:1}#atip img{width:34px;height:34px;flex:none;object-fit:cover;object-position:50% 8%;border-radius:50%}#atip b{color:#d8ceff;font-family:var(--serif)}
-#atut{position:absolute;left:12px;right:12px;top:calc(96px + env(safe-area-inset-top));padding:10px 12px;background:rgba(30,18,10,.9);border:1px solid rgba(255,170,80,.6);font-size:14px;line-height:1.55;display:none;pointer-events:none}
+#atut{padding:10px 12px;background:rgba(30,18,10,.9);border:1px solid rgba(255,170,80,.6);font-size:14px;line-height:1.55;display:none}
 #atut.on{display:block}#atut small{display:block;color:#ffc27a;font-family:var(--serif);font-weight:700;margin-bottom:2px}
-.keys{position:absolute;left:12px;right:12px;top:calc(170px + env(safe-area-inset-top));font-size:11px;color:rgba(201,197,214,.55);pointer-events:none;display:none}
-@media (hover:hover) and (pointer:fine){.keys{display:block}}
+body.pc #atut.on~#atip{top:330px}
+/* 지도 · 설정 */
+#mapOv,#setOv,#updOv{display:none;z-index:60;align-items:center;justify-content:center;background:rgba(5,4,10,.82);padding:16px}
+#mapOv.on,#setOv.on,#updOv.on{display:flex}
+#updOv{z-index:70}
+.upd{padding:12px 0;border-bottom:1px solid rgba(201,197,214,.15)}.upd h3{font-family:var(--serif);font-size:16px}.upd h3 small{font-family:var(--sans);font-size:12px;color:#a49fb5;margin-left:8px}.upd p{font-size:13.5px;color:#c9c5d6;margin:6px 0;line-height:1.6;word-break:keep-all}.upd h4{font-size:12px;color:#ffc27a;margin-top:8px}.upd ul{margin:4px 0 0 18px;font-size:13px;line-height:1.6;color:#ddd8ea;word-break:keep-all}
+.mapbox,.setbox{background:rgba(18,15,30,.97);border:1px solid rgba(201,197,214,.35);border-radius:4px;padding:16px 18px;width:min(560px,100%);max-height:100%;overflow:auto}
+.maphead{display:flex;align-items:center;gap:10px;margin-bottom:10px}.maphead b{font-family:var(--serif);font-size:18px}.maphead span{color:#a49fb5;font-size:13px;flex:1}
+#mapC{width:100%;aspect-ratio:1;display:block;background:radial-gradient(circle,rgba(40,34,60,.6),rgba(10,8,18,.9))}
+.maplegend{font-size:12px;color:#a49fb5;margin-top:8px}
+.setbox h2{font-family:var(--serif);font-size:20px;margin-bottom:12px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(201,197,214,.12);font-size:14px}
+.seg{display:flex;border:1px solid rgba(201,197,214,.35);border-radius:3px;overflow:hidden}
+.seg button{padding:5px 11px;font-size:13px;color:#c9c5d6}.seg button.on{background:rgba(143,123,255,.35);color:#fff}
+.srow input[type=range]{width:150px;accent-color:#8f7bff}
+.setbox details{margin-top:12px;font-size:13px;color:#c9c5d6}.setbox summary{cursor:pointer;font-family:var(--serif);font-size:15px;color:#fff;padding:6px 0}
+.ktab{width:100%;border-collapse:collapse;margin-top:6px}.ktab td{padding:4px 6px;border-bottom:1px solid rgba(201,197,214,.1)}.ktab td:first-child{white-space:nowrap;color:#fff}
+.sbtns{display:flex;gap:10px;margin-top:16px}.sbtns .tbtn{flex:1}
+/* 컴퓨터 화면: 넓게 */
+body.pc #stage{max-width:none}
+/* 휴대폰 가로 화면 */
+@media (orientation:landscape){#stage{max-width:none}}
+@media (orientation:landscape) and (max-height:520px){
+  body.touch .ab{left:50%;transform:translateX(-50%);width:min(440px,46%);text-align:center}
+  body.touch .ab .chips{justify-content:center}
+  body.touch .pl{top:calc(10px + env(safe-area-inset-top));left:12px;width:250px}
+  body.touch #atip,body.touch #atut{left:50%;right:auto;transform:translateX(-50%);top:96px;width:min(440px,50%)}
+  body.touch #joyZone{top:24%;bottom:20px;width:40%}
+  #box{min-height:0;padding:26px 18px 14px}#text{font-size:15px;min-height:3em}
+}
+body.pc #box{left:50%;right:auto;width:min(980px,calc(100% - 48px));transform:translateX(-50%);bottom:28px;min-height:160px;padding:36px 30px 22px}
+body.pc #text{font-size:19px}
+body.pc #choice{padding:0 max(28px,calc(50% - 320px))}
+body.pc #hud{top:18px;right:20px}
+body.pc .spr.spirit{height:30%}
 #result{display:none;z-index:28;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.78);text-align:center;padding:30px}
 #result.on{display:flex}
 #result h2{font-family:var(--serif);font-size:32px;color:var(--silver);margin-bottom:10px}
@@ -219,7 +304,7 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
 @media (min-width:700px){#stage{box-shadow:0 0 0 1px #1d1a28,0 0 80px rgba(0,0,0,.8)}}
 </style>
 </head>
-<body>
+<body class="touch">
 <div id="stage">
   <div id="bg" class="layer bg-black"></div>
   <svg id="rift" viewBox="0 0 400 220" preserveAspectRatio="none" aria-hidden="true">
@@ -242,6 +327,7 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
   <!-- 3D 전투 -->
   <div id="act" class="layer">
     <canvas id="gl"></canvas>
+    <div id="lookZone"></div>
     <div id="vfx"></div>
     <div class="ab">
       <div class="nm" id="aName"></div><div class="sb" id="aSub"></div>
@@ -249,30 +335,86 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
       <div class="hn" id="aNum"></div>
       <div class="chips" id="aChips"></div>
     </div>
+    <div id="mini"><canvas id="miniC" width="220" height="220"></canvas><div id="miniName"></div></div>
+    <div class="topbtn"><button class="tb" data-k="map">지도<span class="kb">M</span></button><button class="tb" data-k="esc">설정<span class="kb">Esc</span></button></div>
     <div id="acall"></div>
-    <div id="joyZone"><div id="joyBase"><div id="joyKnob"></div></div><div class="joyhint">여기를 끌어서 이동</div></div>
-    <div class="keys">WASD 이동 · J 공격 · K 회피 · L 흘려보내기 · U 공허 · I 스킬 · O 무기 · Space 단죄</div>
+    <div id="offArrow"></div>
+    <div id="prompt"><span class="kb">F</span><span id="promptText"></span></div>
+    <div id="joyZone"><div id="joyBase"><div id="joyKnob"></div></div><div class="joyhint">여기를 끌어서 이동 · 오른쪽을 끌면 시점</div></div>
     <div class="pl">
       <div class="ring" id="pRing" style="--v:0"><img src="img/eden.webp" alt="이든"></div>
       <div class="pst">
         <div class="row"><span>이든</span><span id="pHpN"></span></div><div class="bar hp"><i id="pHp"></i></div>
-        <div class="row"><span>공허</span><span id="pVdN"></span></div>
+        <div class="row"><span>공허 (고리)</span><span id="pVdN"></span></div>
+        <div class="row"><span>공명 · 궁극기</span><span id="pUltN"></span></div><div class="bar ul"><i id="pUlt"></i></div>
         <div id="syncRow"><div class="row"><span>동기화율</span><span id="pSyN"></span></div><div class="bar sy"><i id="pSy"></i></div></div>
         <div class="chips" id="pChips"></div>
       </div>
     </div>
-    <div class="pad">
-      <button class="pb" id="bAtk" data-k="atk"><b>공격</b></button>
-      <button class="pb" id="bDodge" data-k="dodge"><b>회피</b></button>
-      <button class="pb" id="bParry" data-k="parry"><b>흘려</b><span>보내기</span></button>
-      <button class="pb" id="bVoid" data-k="void"><b>공허</b><span>40</span></button>
-      <button class="pb" id="bSkill" data-k="skill"><b>설계</b><span></span></button>
-      <button class="pb" id="bSwap" data-k="swap"><b>테로르</b></button>
+    <!-- 컴퓨터용 스킬 바 -->
+    <div class="skills">
+      <div class="sk" data-k="swap"><b>테로르</b><span class="kb">Tab</span></div>
+      <div class="sk" data-k="void"><b>공허의 시야</b><span class="kb">Q</span></div>
+      <div class="sk" data-k="skill"><b>정교한 설계</b><i class="cd"></i><span class="kb">E</span></div>
+      <div class="sk ult" data-k="ult"><b>공허 개방</b><span class="kb">R</span></div>
     </div>
-    <button class="pb" id="bJudge" data-k="judge">단죄</button>
+    <div class="keys">좌클릭 공격 · 0.5초 길게 강공격 · Shift 회피(주황에 맞추면 흘려보내기) · 우클릭 대쉬 · Space 점프 · F 상호작용</div>
+    <!-- 휴대폰용 버튼 -->
+    <div class="pad">
+      <button class="pb" id="tAtk" data-k="atk"><b>공격</b><span>길게: 강</span></button>
+      <button class="pb" id="tDodge" data-k="dodge"><b>회피</b></button>
+      <button class="pb" id="tJump" data-k="jump"><b>점프</b></button>
+      <button class="pb" id="tDash" data-k="dash"><b>대쉬</b></button>
+      <button class="pb" id="tQ" data-k="void"><b>공허</b><span>Q</span></button>
+      <button class="pb" id="tE" data-k="skill"><b>설계</b><span class="cd"></span></button>
+      <button class="pb" id="tR" data-k="ult"><b>궁극</b><span>R</span></button>
+      <button class="pb" id="tSwap" data-k="swap"><b>테로르</b></button>
+    </div>
+    <button class="pb" id="bInteract" data-k="interact"><b>단죄</b><span>F</span></button>
     <div id="atut"><small>카르도의 가르침 <span id="atutN"></span></small><span id="atutText"></span></div>
     <div id="atip"><img id="atipImg" alt=""><div><b id="atipName"></b><div id="atipText"></div></div></div>
   </div>
+
+  <!-- 지도 (M) -->
+  <div id="mapOv" class="layer"><div class="mapbox">
+    <div class="maphead"><b>지도</b><span id="mapStage"></span><button class="tb" id="mapClose">닫기<span class="kb">M</span></button></div>
+    <canvas id="mapC" width="560" height="560"></canvas>
+    <div class="maplegend">흰 화살표 이든 · 빨간 점 적 (주황 = 공격 준비) · 마름모 아이템 (초록 치유 · 보라 사념)</div>
+  </div></div>
+
+  <!-- 업데이트 기록 (updates.json) -->
+  <div id="updOv" class="layer"><div class="setbox">
+    <div class="maphead"><b>업데이트 기록</b><span></span><button class="tb" id="updClose">닫기</button></div>
+    <div id="updList"></div>
+  </div></div>
+
+  <!-- 설정 (Esc) -->
+  <div id="setOv" class="layer"><div class="setbox">
+    <h2>설정</h2>
+    <div class="srow"><span>소리</span><div class="seg" data-set="sound"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
+    <div class="srow"><span>화면 흔들림</span><div class="seg" data-set="shake"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
+    <div class="srow"><span>시점 보정 (공격 중 적 쪽으로)</span><div class="seg" data-set="assist"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
+    <div class="srow"><span>마우스 · 터치 감도</span><input type="range" min="0.4" max="2" step="0.1" data-set="sens"></div>
+    <div class="srow"><span>시점 상하 반전</span><div class="seg" data-set="invertY"><button data-v="0">끔</button><button data-v="1">켬</button></div></div>
+    <div class="srow"><span>그래픽 품질</span><div class="seg" data-set="quality"><button data-v="low">보통</button><button data-v="high">높음</button></div></div>
+    <div class="srow"><span>조작 방식</span><div class="seg" data-set="mode"><button data-v="auto">자동</button><button data-v="pc">컴퓨터</button><button data-v="touch">휴대폰</button></div></div>
+    <details><summary>조작법</summary>
+      <table class="ktab">
+        <tr><td>WASD</td><td>이동 (휴대폰: 왼쪽 화면 끌기)</td></tr>
+        <tr><td>마우스</td><td>시점 (휴대폰: 오른쪽 화면 끌기) · 화면을 클릭하면 마우스가 고정됩니다</td></tr>
+        <tr><td>좌클릭</td><td>공격 · 0.5초 길게 누르면 강공격</td></tr>
+        <tr><td>Shift</td><td>회피 · 주황 공격에 맞춰 누르면 흘려보내기(반격)</td></tr>
+        <tr><td>우클릭</td><td>대쉬</td></tr>
+        <tr><td>Q · E</td><td>공허의 시야 · 시너지아 스킬</td></tr>
+        <tr><td>R</td><td>궁극기 「공허 개방」 (공명 100%)</td></tr>
+        <tr><td>Tab</td><td>무기 전환 (시너지아 ↔ 테로르)</td></tr>
+        <tr><td>Space</td><td>점프 · 공중에서 좌클릭 = 점프 공격 · Ctrl+좌클릭 = 점프 강공격</td></tr>
+        <tr><td>F</td><td>상호작용 (아이템 줍기 · 단죄)</td></tr>
+        <tr><td>M · Esc</td><td>지도 · 설정</td></tr>
+      </table>
+    </details>
+    <div class="sbtns"><button class="tbtn" id="setResume">계속하기</button><button class="tbtn" id="setTitle">타이틀로</button></div>
+  </div></div>
 
   <div id="choice" class="layer"></div>
   <div id="toast"></div>
@@ -285,6 +427,7 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
     <button class="hb" id="bAuto">자동</button>
     <button class="hb" id="bLog">기록</button>
     <button class="hb" id="bSnd">소리 켬</button>
+    <button class="hb" id="bSet">설정</button>
     <button class="hb" id="bMenu">타이틀</button>
   </div>
 
@@ -294,8 +437,9 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
     <div class="menu">
       <button class="tbtn" id="tNew">처음부터</button>
       <button class="tbtn" id="tCont">이어하기</button>
+      <button class="tbtn" id="tUpd" style="font-size:15px;font-weight:400">업데이트 기록</button>
     </div>
-    <div class="ver">v0.3.0 · 3D 액션 체험판 · 제 0막 ~ 제 2막 에필로그</div>
+    <div class="ver">v0.4.0 · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
   </div>
 
   <div id="end" class="layer">
@@ -308,12 +452,12 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
 </div>
 
 <!-- 3D 전투: 엔진 → 이펙트 → 무기 → 캐릭터 → 배경 → 전투 규칙 순서로 불러온다 -->
-<script src="engine.js?v=0.3.0"></script>
-<script src="effects.js?v=0.3.0"></script>
-<script src="weapons.js?v=0.3.0"></script>
-<script src="avatars.js?v=0.3.0"></script>
-<script src="stages.js?v=0.3.0"></script>
-<script src="action.js?v=0.3.0"></script>
+<script src="engine.js?v=0.4.0"></script>
+<script src="effects.js?v=0.4.0"></script>
+<script src="weapons.js?v=0.4.0"></script>
+<script src="avatars.js?v=0.4.0"></script>
+<script src="stages.js?v=0.4.0"></script>
+<script src="action.js?v=0.4.0"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -659,6 +803,43 @@ async function play(from){G.i=from;
 /* ═══════════ 전투 중 대사 ═══════════ */
 window.VN={async say(n,t){const vn=$('vn');vn.style.display='block';vn.style.zIndex=40;await say(n,t,n?'':'narr');vn.style.zIndex='';vn.style.display='none'}};
 
+/* ═══════════ 조작 방식 (컴퓨터 / 휴대폰) ═══════════ */
+const Mode={cur:null,lastTouch:0,
+  set(m){if(this.cur===m)return;this.cur=m;document.body.classList.toggle('pc',m==='pc');document.body.classList.toggle('touch',m==='touch');dispatchEvent(new Event('resize'))},
+  auto(m){if(Settings.get().mode==='auto')this.set(m)}};
+addEventListener('touchstart',()=>{Mode.lastTouch=performance.now();Mode.auto('touch')},{passive:true,capture:true});
+addEventListener('mousemove',e=>{if(performance.now()-Mode.lastTouch>1200&&(e.movementX||e.movementY))Mode.auto('pc')},{passive:true});
+addEventListener('keydown',()=>{if(performance.now()-Mode.lastTouch>1200)Mode.auto('pc')},{capture:true});
+
+/* ═══════════ 설정 (Esc) ═══════════ */
+window.Settings=(()=>{const D={sound:1,shake:1,assist:1,sens:1,invertY:0,quality:'high',mode:'auto'};
+  let v=Object.assign({},D,store.get('as0_settings')||{});let openedAt=0;
+  function apply(){SFX.on=!!v.sound;$('bSnd').textContent=SFX.on?'소리 켬':'소리 끔';if(window.AS3D)AS3D.pixelRatio=v.quality==='high'?2:1.25;
+    if(v.mode!=='auto')Mode.set(v.mode);else Mode.set(Mode.cur||(matchMedia('(hover:hover) and (pointer:fine)').matches?'pc':'touch'));
+    document.querySelectorAll('#setOv [data-set]').forEach(el=>{const k=el.dataset.set;if(el.tagName==='INPUT')el.value=v[k];else el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(v[k])===b.dataset.v))})}
+  function set(k,val){v[k]=(k==='quality'||k==='mode')?val:Number(val);store.set('as0_settings',v);apply()}
+  document.querySelectorAll('#setOv .seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{set(seg.dataset.set,b.dataset.v);if(seg.dataset.set==='mode'&&b.dataset.v==='auto')Mode.cur=null,apply()}));
+  document.querySelectorAll('#setOv input[data-set]').forEach(el=>el.oninput=()=>set(el.dataset.set,el.value));
+  const api={get:()=>({sens:v.sens,shake:v.shake?1:0,invertY:!!v.invertY,assist:!!v.assist,mode:v.mode}),
+    isOpen:()=>$('setOv').classList.contains('on'),
+    open(){if(api.isOpen())return;openedAt=performance.now();$('setOv').classList.add('on');if(window.Action)Action.pause(true);try{document.exitPointerLock&&document.exitPointerLock()}catch(e){}},
+    close(){$('setOv').classList.remove('on');if(window.Action)Action.pause(false)},
+    toggle(){if(api.isOpen()){if(performance.now()-openedAt>250)api.close()}else api.open()},apply,set};
+  $('setResume').onclick=()=>api.close();$('setTitle').onclick=()=>location.reload();
+  return api})();
+Settings.apply();
+$('bSet').onclick=e=>{e.stopPropagation();Settings.open()};
+$('mapClose').onclick=()=>Action.closeMap();
+addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();if($('mapOv').classList.contains('on')){Action.closeMap();return}Settings.toggle()}});
+
+/* ═══════════ 업데이트 기록 ═══════════ */
+$('tUpd').onclick=async()=>{const L=$('updList');L.textContent='불러오는 중…';$('updOv').classList.add('on');
+  try{const d=await (await fetch('updates.json?v=0.4.0')).json();const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    const sec=(n,a)=>a&&a.length?`<h4>${n}</h4><ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+    L.innerHTML=d.updates.map(u=>`<div class="upd"><h3>${esc(u.version)} · ${esc(u.title)}<small>${esc(u.date)}</small></h3><p>${esc(u.summary)}</p>${sec('추가',u.added)}${sec('변경',u.changed)}${sec('수정',u.fixed)}</div>`).join('')}
+  catch(e){L.textContent='updates.json 을 불러오지 못했습니다. 웹 주소(GitHub Pages 등)로 열었는지 확인하세요.'}};
+$('updClose').onclick=()=>$('updOv').classList.remove('on');
+
 /* ═══════════ 엔딩 ═══════════ */
 function showEnd(){$('vn').style.display='none';$('hud').style.display='none';
   $('endStats').innerHTML=`<dt>함께한 시너지아</dt><dd>${G.partner==='A'?'센티아 (이성)':'센수스 (본성)'} → 합일</dd><dt>계승한 사념</dt><dd>테로르, 포비아</dd><dt>쓰러진 횟수</dt><dd>${G.losses}</dd>`;
@@ -674,7 +855,7 @@ $('tCont').onclick=()=>{const s=store.get('as0_save');if(!s)return;G=s;
   let b='black';for(let k=0;k<=s.i;k++)if(SCRIPT[k].bg)b=SCRIPT[k].bg;setBg(b);startFrom(s.i)};
 $('hud').style.display='none';
 $('bAuto').onclick=e=>{e.stopPropagation();auto=!auto;$('bAuto').classList.toggle('on',auto);if(auto&&advanceResolve&&!typing){const r=advanceResolve;advanceResolve=null;r()}};
-$('bSnd').onclick=e=>{e.stopPropagation();SFX.on=!SFX.on;$('bSnd').textContent=SFX.on?'소리 켬':'소리 끔'};
+$('bSnd').onclick=e=>{e.stopPropagation();Settings.set('sound',SFX.on?0:1)};
 $('bLog').onclick=e=>{e.stopPropagation();$('logList').innerHTML=logArr.slice(-80).map(l=>`<p>${l.name?`<b>${l.name}</b>`:''}${l.text.replace(/\n/g,'<br>')}</p>`).join('');$('log').classList.add('on');$('log').scrollTop=1e6};
 $('logClose').onclick=()=>$('log').classList.remove('on');
 $('bMenu').onclick=e=>{e.stopPropagation();location.reload()};

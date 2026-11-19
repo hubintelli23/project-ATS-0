@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — engine.js  v0.3.0
+/* 액팅 소울 : 0 — engine.js  v0.4.0
    3D 렌더링 엔진 (외부 라이브러리 없음, WebGL 1)
    - 툰 셰이딩 + 외곽선(인버티드 헐) 메시
    - 기본 도형: box / sphere / cyl(원기둥·원뿔대) / limb / disc / arc / ring / quad
@@ -118,7 +118,8 @@ E.init=function(canvas){cv=canvas;gl=cv.getContext('webgl',{alpha:true,premultip
   PQ=prog(VSQ,FSQ,['aP','aUV'],['uM','uV','uP','uT','uTint','uFlash','uCut','uFogN','uFogF','uFog']);
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);gl.enable(gl.DEPTH_TEST);gl.enable(gl.BLEND);
   gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);E.gl=gl;return true};
-E.resize=function(){const d=Math.min(2,devicePixelRatio||1),w=Math.round(cv.clientWidth*d),h=Math.round(cv.clientHeight*d);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}return w&&h};
+E.pixelRatio=2;
+E.resize=function(){const d=Math.min(E.pixelRatio,devicePixelRatio||1),w=Math.round(cv.clientWidth*d),h=Math.round(cv.clientHeight*d);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}return w&&h};
 E.clear=function(){gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0,0,0,0);gl.depthMask(true);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT)};
 E.camera=function(ex,ey,ez,tx,ty,tz,fovDeg){const asp=cv.width/cv.height;S.proj=M4.persp((fovDeg||(asp<1?58:48))*Math.PI/180,asp,.1,120);S.view=M4.lookAt(ex,ey,ez,tx,ty,tz);S.cam=[ex,ey,ez]};
 E.env=function(o){Object.assign(S,o)};
