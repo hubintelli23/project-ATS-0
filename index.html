@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 액팅 소울 : 0 — index.html  v0.4.0 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
+<!-- 액팅 소울 : 0 — index.html  v0.5.1 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -55,7 +55,7 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
   linear-gradient(#110e1c 0%,#0a0812 70%,#050409 100%)}
 .bg-void{background:radial-gradient(circle at 50% 42%,#1a1236 0%,#06040d 55%,#000 100%)}
 .bg-black{background:#000}
-#rift{position:absolute;left:0;right:0;top:4%;height:46%;opacity:0;transition:opacity 1.2s;pointer-events:none}
+#rift{position:absolute;left:0;right:0;width:100%;top:4%;height:46%;opacity:0;transition:opacity 1.2s;pointer-events:none}
 #fxCanvas{pointer-events:none}
 
 /* ── 스프라이트 ─────────────────── */
@@ -120,6 +120,13 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
 .tbtn{padding:13px 0;font-family:var(--serif);font-size:17px;font-weight:700;border:1px solid rgba(201,197,214,.4);background:rgba(15,12,26,.6);color:var(--silver);border-radius:2px}
 .tbtn:active{background:rgba(59,42,122,.6)}
 .tbtn[disabled]{opacity:.35}
+#verWarn{display:none;max-width:min(560px,90%);margin-top:18px;padding:10px 14px;border:1px solid #c2493a;background:rgba(60,14,14,.85);color:#ffd2c8;font-size:13px;line-height:1.6;text-align:left;word-break:keep-all}
+#verWarn.on{display:block}
+#title.warn .ver{display:none}
+#title.warn img{width:70%;max-width:380px}
+#title{overflow-y:auto}
+#errBox{position:fixed;left:10px;bottom:10px;max-width:min(520px,92vw);z-index:99;padding:10px 12px;background:rgba(60,14,14,.95);border:1px solid #c2493a;color:#ffd2c8;font:12px/1.5 var(--sans);display:none;white-space:pre-wrap;word-break:break-all}
+#errBox.on{display:block}
 #title .ver{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));font-size:12px;color:#6c6780}
 
 /* ── 로그 ───────────────────────── */
@@ -241,8 +248,13 @@ body.pc #atip,body.pc #atut{left:20px;right:auto;top:220px;width:360px}
 #atut.on{display:block}#atut small{display:block;color:#ffc27a;font-family:var(--serif);font-weight:700;margin-bottom:2px}
 body.pc #atut.on~#atip{top:330px}
 /* 지도 · 설정 */
-#mapOv,#setOv,#updOv{display:none;z-index:60;align-items:center;justify-content:center;background:rgba(5,4,10,.82);padding:16px}
-#mapOv.on,#setOv.on,#updOv.on{display:flex}
+#mapOv,#setOv,#updOv,#masterOv{display:none;z-index:60;align-items:center;justify-content:center;background:rgba(5,4,10,.82);padding:16px}
+#mapOv.on,#setOv.on,#updOv.on,#masterOv.on{display:flex}
+#masterOv{z-index:70}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.mgrid .tbtn{font-size:14px;padding:10px 0}
+#mBadge{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;font:700 11px var(--sans);letter-spacing:.12em;color:#ffd36a;border:1px solid rgba(255,211,106,.6);padding:2px 8px;border-radius:2px;background:rgba(30,22,8,.75);display:none;pointer-events:none}
+body.master #mBadge{display:block}
+body.touch #mBadge{bottom:auto;top:calc(186px + env(safe-area-inset-top));left:12px;transform:none}
 #updOv{z-index:70}
 .upd{padding:12px 0;border-bottom:1px solid rgba(201,197,214,.15)}.upd h3{font-family:var(--serif);font-size:16px}.upd h3 small{font-family:var(--sans);font-size:12px;color:#a49fb5;margin-left:8px}.upd p{font-size:13.5px;color:#c9c5d6;margin:6px 0;line-height:1.6;word-break:keep-all}.upd h4{font-size:12px;color:#ffc27a;margin-top:8px}.upd ul{margin:4px 0 0 18px;font-size:13px;line-height:1.6;color:#ddd8ea;word-break:keep-all}
 .mapbox,.setbox{background:rgba(18,15,30,.97);border:1px solid rgba(201,197,214,.35);border-radius:4px;padding:16px 18px;width:min(560px,100%);max-height:100%;overflow:auto}
@@ -305,6 +317,7 @@ body.pc .spr.spirit{height:30%}
 </style>
 </head>
 <body class="touch">
+<div id="errBox"></div>
 <div id="stage">
   <div id="bg" class="layer bg-black"></div>
   <svg id="rift" viewBox="0 0 400 220" preserveAspectRatio="none" aria-hidden="true">
@@ -338,6 +351,7 @@ body.pc .spr.spirit{height:30%}
     <div id="mini"><canvas id="miniC" width="220" height="220"></canvas><div id="miniName"></div></div>
     <div class="topbtn"><button class="tb" data-k="map">지도<span class="kb">M</span></button><button class="tb" data-k="esc">설정<span class="kb">Esc</span></button></div>
     <div id="acall"></div>
+    <div id="mBadge">MASTER</div>
     <div id="offArrow"></div>
     <div id="prompt"><span class="kb">F</span><span id="promptText"></span></div>
     <div id="joyZone"><div id="joyBase"><div id="joyKnob"></div></div><div class="joyhint">여기를 끌어서 이동 · 오른쪽을 끌면 시점</div></div>
@@ -380,6 +394,25 @@ body.pc .spr.spirit{height:30%}
     <div class="maphead"><b>지도</b><span id="mapStage"></span><button class="tb" id="mapClose">닫기<span class="kb">M</span></button></div>
     <canvas id="mapC" width="560" height="560"></canvas>
     <div class="maplegend">흰 화살표 이든 · 빨간 점 적 (주황 = 공격 준비) · 마름모 아이템 (초록 치유 · 보라 사념)</div>
+  </div></div>
+
+  <!-- 마스터 모드 -->
+  <div id="masterOv" class="layer"><div class="setbox">
+    <div class="maphead"><b>마스터 모드</b><span>제한 없이 확인·연습하는 모드</span><button class="tb" id="mClose">닫기</button></div>
+    <div class="srow"><span>스토리 자동 넘김 (대사·연출 건너뜀)</span><div class="seg" data-m="skipStory"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
+    <div class="srow"><span>쿨타임 없음 (스킬·회피·대쉬)</span><div class="seg" data-m="noCd"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
+    <div class="srow"><span>공허·공명 무제한 (Q·R 항상 사용)</span><div class="seg" data-m="freeRes"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
+    <div class="srow"><span>무적 (체력이 줄지 않음)</span><div class="seg" data-m="god"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
+    <div class="srow"><span>시너지아</span><div class="seg" data-m="partner"><button data-v="A">센티아</button><button data-v="B">센수스</button></div></div>
+    <h4 style="font-size:13px;color:#ffc27a;margin:14px 0 8px">전투 바로 가기</h4>
+    <div class="mgrid">
+      <button class="tbtn" data-battle="kardo">카르도 (튜토리얼)</button>
+      <button class="tbtn" data-battle="furor">푸로르</button>
+      <button class="tbtn" data-battle="fallen">폴른 무리</button>
+      <button class="tbtn" data-battle="teror">테로르</button>
+      <button class="tbtn" data-battle="phobia">포비아</button>
+    </div>
+    <div class="sbtns"><button class="tbtn" id="mStory">마스터 모드로 처음부터</button></div>
   </div></div>
 
   <!-- 업데이트 기록 (updates.json) -->
@@ -437,9 +470,11 @@ body.pc .spr.spirit{height:30%}
     <div class="menu">
       <button class="tbtn" id="tNew">처음부터</button>
       <button class="tbtn" id="tCont">이어하기</button>
+      <button class="tbtn" id="tMaster" style="font-size:15px;font-weight:400">마스터 모드</button>
       <button class="tbtn" id="tUpd" style="font-size:15px;font-weight:400">업데이트 기록</button>
     </div>
-    <div class="ver">v0.4.0 · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
+    <div id="verWarn"></div>
+    <div class="ver">v0.5.1 · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
   </div>
 
   <div id="end" class="layer">
@@ -452,14 +487,25 @@ body.pc .spr.spirit{height:30%}
 </div>
 
 <!-- 3D 전투: 엔진 → 이펙트 → 무기 → 캐릭터 → 배경 → 전투 규칙 순서로 불러온다 -->
-<script src="engine.js?v=0.4.0"></script>
-<script src="effects.js?v=0.4.0"></script>
-<script src="weapons.js?v=0.4.0"></script>
-<script src="avatars.js?v=0.4.0"></script>
-<script src="stages.js?v=0.4.0"></script>
-<script src="action.js?v=0.4.0"></script>
+<script src="engine.js"></script>
+<script src="effects.js"></script>
+<script src="weapons.js"></script>
+<script src="avatars.js"></script>
+<script src="stages.js"></script>
+<script src="action.js"></script>
 <script>
 'use strict';
+/* ═══════════ 파일 확인 · 오류 표시 ═══════════ */
+const GAME_VERSION='0.5.1';
+const REQUIRED_FILES=['engine.js','effects.js','weapons.js','avatars.js','stages.js','action.js'];
+function showError(msg){const b=document.getElementById('errBox');if(!b)return;b.textContent='오류 — '+msg;b.classList.add('on');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('on'),15000)}
+addEventListener('error',e=>{const f=(e.filename||'').split('/').pop();showError((e.message||'알 수 없는 오류')+(f?`\n파일: ${f} ${e.lineno||''}줄`:''))});
+addEventListener('unhandledrejection',e=>showError(String(e.reason&&e.reason.message||e.reason)));
+function checkFiles(){const V=window.AS_VERSIONS||{};const bad=REQUIRED_FILES.filter(f=>V[f]!==GAME_VERSION).map(f=>V[f]?`${f} (v${V[f]})`:`${f} (없음)`);
+  if(!bad.length)return true;const w=document.getElementById('verWarn');
+  w.innerHTML=`<b>게임 파일이 맞지 않아 전투가 시작되지 않습니다.</b><br>없거나 버전이 다른 파일 (index.html 은 v${GAME_VERSION}): ${bad.join(', ')}<br>zip 안의 파일을 <b>전부</b> 같은 폴더에 다시 올린 뒤, 브라우저를 새로고침(휴대폰은 캐시 삭제)해 주세요.`;
+  w.classList.add('on');document.getElementById('title').classList.add('warn');return false}
+
 const $=id=>document.getElementById(id);
 const stage=$('stage');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -752,21 +798,22 @@ function waitTap(){return new Promise(r=>{advanceResolve=r;if(auto){const len=$(
 function onTap(){SFX.play('ui');if(typing){typing.done();return}if(advanceResolve){const r=advanceResolve;advanceResolve=null;r()}}
 $('box').addEventListener('click',onTap);
 $('vn').addEventListener('click',e=>{if(e.target===$('vn'))onTap()});
-addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&$('vn').style.display!=='none'&&!$('act').classList.contains('on')&&!$('title').style.display.includes('flex')){e.preventDefault();onTap()}});
+addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&$('vn').style.display!=='none'&&$('title').style.display==='none'&&!$('choice').classList.contains('on')&&!Settings.isOpen()){e.preventDefault();e.stopPropagation();onTap()}},true);
 
 async function say(name,text,kind){
   $('vn').style.display='block';
   $('name').textContent=name||'';
   if(name)highlight(name);else for(const k in sprites)sprites[k].classList.remove('talk');
   logArr.push({name,text});
+  if(Master.skip()){$('text').className=kind||'';$('text').textContent=text;$('box').classList.add('done');await wait(16);return}
   await typeLine(text,kind);await waitTap();
 }
 async function toast(t,ms=2400){const el=$('toast');el.textContent=t;el.classList.add('on');SFX.play('void');await wait(ms);el.classList.remove('on');await wait(400)}
-async function showCard(act,ttl){$('cardAct').textContent=act;$('cardTtl').textContent=ttl;$('vn').style.display='none';$('card').classList.add('on');await wait(2300);hideAll();$('card').classList.remove('on');await wait(700)}
+async function showCard(act,ttl){$('cardAct').textContent=act;$('cardTtl').textContent=ttl;$('vn').style.display='none';$('card').classList.add('on');await wait(Master.skip()?250:2300);hideAll();$('card').classList.remove('on');await wait(700)}
 async function doFx(f){
   if(f==='shake'){stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');SFX.play('heavy')}
   if(f==='flash'){stage.classList.remove('flash');void stage.offsetWidth;stage.classList.add('flash');stage.classList.add('shake');SFX.play('heavy');setTimeout(()=>stage.classList.remove('flash','shake'),700)}
-  if(f==='void'){SFX.play('void');const e=$('eye');e.classList.add('on');await wait(1500);e.classList.remove('on');await wait(300)}
+  if(f==='void'){SFX.play('void');if(Master.skip())return;const e=$('eye');e.classList.add('on');await wait(1500);e.classList.remove('on');await wait(300)}
   if(f==='beat'){stage.classList.remove('beat');void stage.offsetWidth;stage.classList.add('beat');SFX.play('hurt');setTimeout(()=>stage.classList.remove('beat'),2300)}
 }
 function choose(q,opts){return new Promise(res=>{const c=$('choice');c.innerHTML=`<div class="q">${q.replace(/\n/g,'<br>')}</div>`;
@@ -774,7 +821,7 @@ function choose(q,opts){return new Promise(res=>{const c=$('choice');c.innerHTML
     b.onclick=()=>{SFX.play('void');c.classList.remove('on');res(o.k)};c.appendChild(b)}c.classList.add('on')})}
 
 function nameOf(who){return who==='대행자'?G.edenName:who}
-function save(){store.set('as0_save',{...G})}
+function save(){if(Master.on)return;store.set('as0_save',{...G})}
 
 async function runCmd(c){
   if(c.if){if(c.if===G.partner)for(const x of c.c)await runCmd(x);return}
@@ -784,14 +831,16 @@ async function runCmd(c){
   if(c.show){showSpr(c.show,c.pos);return}
   if(c.hide){hideSpr(c.hide);return}
   if(c.fx)return doFx(c.fx);
-  if(c.sys){$('vn').style.display='block';$('name').textContent='';logArr.push({name:'시스템',text:c.sys});await typeLine(c.sys,'sys');SFX.play('void');return waitTap()}
+  if(c.sys){$('vn').style.display='block';$('name').textContent='';logArr.push({name:'시스템',text:c.sys});if(Master.skip())return;await typeLine(c.sys,'sys');SFX.play('void');return waitTap()}
   if(c.card)return showCard(c.card[0],c.card[1]);
   if(c.choice){G.partner=await choose(c.choice,c.opts);return}
   if(c.setName){G.edenName=c.setName;return}
   if(c.flag){G.flags[c.flag]=1;if(c.flag==='teror')G.absorbed++;return}
   if(c.save){save();return}
   if(c.battle){save();$('vn').style.display='none';hideAll();const keepBg=$('bg').className;
-    await Action.run(c.battle,{partner:G.partner,flags:G.flags,name:G.edenName,onLose:()=>G.losses++});
+    if(!window.Action||!checkFiles()){await battleFail('전투 파일을 불러오지 못했습니다. 타이틀 화면의 안내를 확인해 주세요.')}
+    else{try{await Action.run(c.battle,{partner:G.partner,flags:G.flags,name:G.edenName,onLose:()=>G.losses++})}
+      catch(err){console.error(err);await battleFail('전투를 시작하지 못했습니다: '+(err&&err.message||err))}}
     $('bg').className=keepBg;$('vn').style.display='block';return}
   if(c.end){G.absorbed=Math.max(G.absorbed,2);store.del('as0_save');return showEnd()}
 }
@@ -832,9 +881,35 @@ $('bSet').onclick=e=>{e.stopPropagation();Settings.open()};
 $('mapClose').onclick=()=>Action.closeMap();
 addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();if($('mapOv').classList.contains('on')){Action.closeMap();return}Settings.toggle()}});
 
+// 전투를 시작할 수 없을 때: 이유를 보여주고 스토리를 계속 진행할 수 있게 한다
+function battleFail(msg){showError(msg);return new Promise(res=>{const r=$('result');r.innerHTML=`<h2>전투를 열 수 없다</h2><p>${msg}</p><button class="tbtn" id="retry" style="width:220px">전투 건너뛰고 계속</button>`;r.classList.add('on');$('retry').onclick=()=>{r.classList.remove('on');res()}})}
+checkFiles();
+
+/* ═══════════ 마스터 모드 ═══════════ */
+window.Master=(()=>{const D={skipStory:1,noCd:1,freeRes:1,god:0,partner:'A'};let o=Object.assign({},D,store.get('as0_master')||{});
+  const api={on:false,
+    get opts(){return{skipStory:!!o.skipStory,noCd:!!o.noCd,freeRes:!!o.freeRes,god:!!o.god}},
+    skip(){return api.on&&!!o.skipStory},
+    setOn(v){api.on=v;document.body.classList.toggle('master',v)},
+    sync(){document.querySelectorAll('#masterOv [data-m]').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(o[seg.dataset.m])===b.dataset.v)))}};
+  document.querySelectorAll('#masterOv [data-m]').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=seg.dataset.m;o[k]=k==='partner'?b.dataset.v:Number(b.dataset.v);store.set('as0_master',o);api.sync()}));
+  // 전투 바로 가기: 그 전투에 맞는 진행 상태(합일·테로르 획득)를 갖추고 시작
+  const NEED={kardo:{},furor:{},fallen:{},teror:{reunited:1},phobia:{reunited:1,teror:1}};
+  document.querySelectorAll('#masterOv [data-battle]').forEach(b=>b.onclick=async()=>{const id=b.dataset.battle;
+    $('masterOv').classList.remove('on');$('title').style.display='none';api.setOn(true);
+    G={i:0,partner:o.partner,edenName:'이든',flags:Object.assign({},NEED[id]),losses:0,absorbed:0};
+    $('vn').style.display='none';
+    if(!window.Action||!checkFiles())await battleFail('전투 파일을 불러오지 못했습니다. 타이틀 화면의 안내를 확인해 주세요.');
+    else{try{await Action.run(id,{partner:G.partner,flags:G.flags,name:G.edenName,onLose:()=>G.losses++})}catch(err){await battleFail('전투를 시작하지 못했습니다: '+(err&&err.message||err))}}
+    $('hud').style.display='none';$('title').style.display='flex';$('masterOv').classList.add('on')});
+  $('mStory').onclick=()=>{$('masterOv').classList.remove('on');api.setOn(true);store.del('as0_save');G={i:0,partner:o.partner,edenName:'대행자',flags:{},losses:0,absorbed:0};startFrom(0)};
+  $('mClose').onclick=()=>$('masterOv').classList.remove('on');
+  $('tMaster').onclick=()=>{api.sync();$('masterOv').classList.add('on')};
+  return api})();
+
 /* ═══════════ 업데이트 기록 ═══════════ */
 $('tUpd').onclick=async()=>{const L=$('updList');L.textContent='불러오는 중…';$('updOv').classList.add('on');
-  try{const d=await (await fetch('updates.json?v=0.4.0')).json();const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  try{const d=await (await fetch('updates.json',{cache:'no-store'})).json();const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
     const sec=(n,a)=>a&&a.length?`<h4>${n}</h4><ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
     L.innerHTML=d.updates.map(u=>`<div class="upd"><h3>${esc(u.version)} · ${esc(u.title)}<small>${esc(u.date)}</small></h3><p>${esc(u.summary)}</p>${sec('추가',u.added)}${sec('변경',u.changed)}${sec('수정',u.fixed)}</div>`).join('')}
   catch(e){L.textContent='updates.json 을 불러오지 못했습니다. 웹 주소(GitHub Pages 등)로 열었는지 확인하세요.'}};
@@ -849,8 +924,8 @@ $('endBtn').onclick=()=>location.reload();
 /* ═══════════ 타이틀 / HUD ═══════════ */
 function startFrom(i){$('title').style.display='none';$('hud').style.display='flex';SFX.play('void');play(i)}
 const sv=store.get('as0_save');$('tCont').disabled=!sv;
-$('tNew').onclick=()=>{store.del('as0_save');G={i:0,partner:'A',edenName:'대행자',flags:{},losses:0,absorbed:0};startFrom(0)};
-$('tCont').onclick=()=>{const s=store.get('as0_save');if(!s)return;G=s;
+$('tNew').onclick=()=>{Master.setOn(false);store.del('as0_save');G={i:0,partner:'A',edenName:'대행자',flags:{},losses:0,absorbed:0};startFrom(0)};
+$('tCont').onclick=()=>{Master.setOn(false);const s=store.get('as0_save');if(!s)return;G=s;
   // 저장 위치 직전의 배경을 복원
   let b='black';for(let k=0;k<=s.i;k++)if(SCRIPT[k].bg)b=SCRIPT[k].bg;setBg(b);startFrom(s.i)};
 $('hud').style.display='none';

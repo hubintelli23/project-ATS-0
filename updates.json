@@ -1,8 +1,70 @@
 {
   "project": "액팅 소울 : 0 — 3D 액션 체험판",
-  "current": "v0.4.0",
+  "current": "v0.5.1",
   "note": "버전별 업데이트 기록. 최신 버전이 맨 위. 새 버전을 낼 때 updates 배열 맨 앞에 항목을 추가한다.",
   "updates": [
+    {
+      "version": "v0.5.1",
+      "date": "2026-11-20",
+      "title": "전투 진입 실패 진단과 보호",
+      "summary": "파일이 빠지거나 버전이 섞여 전투가 시작되지 않을 때, 멈추지 않고 원인을 화면에 보여주도록 했다.",
+      "added": [
+        "타이틀 화면 파일 확인: engine·effects·weapons·avatars·stages·action.js 가 없거나 index.html 과 버전이 다르면 어떤 파일인지 빨간 안내로 표시",
+        "전투를 시작하지 못하면 이유를 보여주고 「전투 건너뛰고 계속」으로 스토리를 이어갈 수 있음",
+        "실행 중 오류가 나면 화면 왼쪽 아래에 오류 내용과 파일·줄 번호 표시",
+        "각 js 파일이 자기 버전을 등록 (AS_VERSIONS)"
+      ],
+      "changed": [
+        "스크립트 주소의 ?v= 표시 제거 (일부 호스팅에서 파일을 찾지 못하는 문제 예방). 버전은 각 파일 맨 위 주석과 파일 확인 기능으로 관리",
+        "updates.json 은 항상 새로 불러옴"
+      ],
+      "fixed": [
+        "파일 구성이 어긋났을 때 스토리가 전투 직전에서 아무 반응 없이 멈추던 문제"
+      ],
+      "files": [
+        "index.html",
+        "engine.js",
+        "effects.js",
+        "weapons.js",
+        "avatars.js",
+        "stages.js",
+        "action.js",
+        "updates.json",
+        "README.md"
+      ]
+    },
+    {
+      "version": "v0.5.0",
+      "date": "2026-11-20",
+      "title": "전투 진입 버그 수정과 마스터 모드",
+      "summary": "스토리에서 전투로 넘어가지 않던 문제와 컴퓨터 화면에서 첫 장면 그림이 잘리던 문제를 고치고, 제한 없이 확인·연습하는 마스터 모드를 추가했다.",
+      "added": [
+        "마스터 모드 (타이틀의 「마스터 모드」 버튼)",
+        "마스터 모드 옵션: 스토리 자동 넘김(대사·연출 건너뜀), 쿨타임 없음(스킬·회피·대쉬), 공허·공명 무제한(Q·R 항상 사용), 무적, 시너지아 선택",
+        "마스터 모드 「전투 바로 가기」: 카르도·푸로르·폴른 무리·테로르·포비아 중 하나를 골라 바로 시작 (합일·테로르 획득 상태를 자동으로 맞춤), 끝나면 마스터 패널로 돌아옴",
+        "전투 중 MASTER 표시"
+      ],
+      "changed": [
+        "마스터 모드에서는 이어하기 저장을 하지 않음 (일반 진행 기록을 덮어쓰지 않게)",
+        "일반 「처음부터」·「이어하기」를 누르면 마스터 모드가 꺼짐"
+      ],
+      "fixed": [
+        "전투 시작 직후 나오는 대사(카르도·파트너)를 Space/Enter로 넘길 수 없어 전투가 시작되지 않던 문제 — 이제 Space·Enter·클릭 모두 가능",
+        "대사를 넘기던 Space가 전투 시작 후 점프로 이어지던 문제",
+        "컴퓨터처럼 넓은 화면에서 첫 장면의 하늘 균열 그림이 화면 절반에서 끊기던 문제 — 화면 폭 전체로 늘어나게 수정"
+      ],
+      "files": [
+        "index.html",
+        "action.js",
+        "engine.js",
+        "avatars.js",
+        "weapons.js",
+        "effects.js",
+        "stages.js",
+        "README.md",
+        "updates.json"
+      ]
+    },
     {
       "version": "v0.4.0",
       "date": "2026-11-19",
@@ -39,7 +101,17 @@
       "fixed": [
         "이야기 화면 배경 입자(FX)와 이펙트 모듈(FX) 이름 충돌 → 이야기 화면 쪽을 BGFX로 변경"
       ],
-      "files": ["index.html", "action.js", "avatars.js", "engine.js", "effects.js", "weapons.js", "stages.js", "README.md", "updates.json"]
+      "files": [
+        "index.html",
+        "action.js",
+        "avatars.js",
+        "engine.js",
+        "effects.js",
+        "weapons.js",
+        "stages.js",
+        "README.md",
+        "updates.json"
+      ]
     },
     {
       "version": "v0.3.0",
@@ -60,7 +132,16 @@
         "카메라 거리·각도 조정 (이든이 보스를 가리지 않게)"
       ],
       "fixed": [],
-      "files": ["index.html", "action.js", "engine.js", "avatars.js", "weapons.js", "effects.js", "stages.js", "README.md"]
+      "files": [
+        "index.html",
+        "action.js",
+        "engine.js",
+        "avatars.js",
+        "weapons.js",
+        "effects.js",
+        "stages.js",
+        "README.md"
+      ]
     },
     {
       "version": "v0.2.0",
@@ -80,7 +161,11 @@
       "fixed": [
         "전투 화면이 숨겨진 상태에서 캔버스 크기를 재서 3D가 보이지 않던 문제"
       ],
-      "files": ["index.html", "action.js", "README.md"]
+      "files": [
+        "index.html",
+        "action.js",
+        "README.md"
+      ]
     },
     {
       "version": "v0.1.0",
@@ -95,7 +180,10 @@
       ],
       "changed": [],
       "fixed": [],
-      "files": ["index.html", "img/"]
+      "files": [
+        "index.html",
+        "img/"
+      ]
     }
   ]
 }
