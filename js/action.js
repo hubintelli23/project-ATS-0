@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — action.js  v0.4.0
+/* 액팅 소울 : 0 — action.js  v0.5.1
    3D 실시간 전투의 규칙: 입력(컴퓨터·휴대폰), 3인칭 백뷰 카메라, 보스 패턴, 판정,
    튜토리얼, 아이템, 지도, HUD.  그리는 일은 다른 파일이 맡는다.
      engine.js  : 3D 엔진       avatars.js : 캐릭터
@@ -17,6 +17,8 @@
      Space       점프 · Space+좌클릭 점프 공격 · Space+Ctrl+좌클릭 점프 강공격
      F           상호작용 (아이템 줍기 · 단죄)
      M           지도          Esc  설정 */
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.5.1';
+
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
@@ -106,7 +108,7 @@ function setupInput(){
   // 키보드
   const map={shift:'dodge',q:'void',e:'skill',r:'ult',tab:'swap',' ':'jump',f:'interact'};
   addEventListener('keydown',e=>{if(!S.running)return;const k=e.key.toLowerCase();if(k==='tab'||k===' ')e.preventDefault();
-    if(e.repeat)return;IN.keys[k]=1;if(window.Settings&&Settings.isOpen())return;
+    if(e.repeat)return;IN.keys[k]=1;if(window.Settings&&Settings.isOpen())return;if(S.paused&&k!=='m')return;
     if(k==='m'){mapOpen()?closeMap():openMap();return}
     if(mapOpen())return;
     if(map[k])press(map[k])});
@@ -150,7 +152,7 @@ async function intro(){S.paused=true;await wait(400);
   if(T0)tip(T0[ctx.partner==='A'?0:1])}
 
 /* ═══════════════ 대사 / 팁 / 화면 글자 ═══════════════ */
-async function say(n,t){S.paused=true;unlockPointer();IN.atkDown=false;await window.VN.say(n,t);S.paused=false}
+async function say(n,t){S.paused=true;unlockPointer();IN.atkDown=false;await window.VN.say(n,t);IN.q={};S.paused=false}
 let tipT;
 function tip(text,who){who=who||(ctx.partner==='A'?'sentia':'sensus');$('atipImg').src=ICON[who];
   $('atipName').textContent={sentia:'센티아',sensus:'센수스',kardo:'카르도',phobia:'포비아'}[who];$('atipText').textContent=text;
@@ -298,7 +300,7 @@ function doJudge(e){if(cine)return;
 
 function hurtPlayer(d,o={}){
   if(d<=0)return;let a=d;if(P.shield&&!o.self){const s=Math.min(P.shield,a);P.shield-=s;a-=s}
-  P.hp-=a;if(tut&&P.hp<1)P.hp=1;P.flash=.15;if(!o.self)P.void=Math.min(100,P.void+5);
+  P.hp-=a;if(tut&&P.hp<1)P.hp=1;if(window.Master&&Master.on&&Master.opts.god)P.hp=P.max;P.flash=.15;if(!o.self)P.void=Math.min(100,P.void+5);
   if(a>0){num(P.x,1.9,P.z,a,'me');sfx('hurt');shake(.22)}
   if(!o.self&&a>0&&P.state!=='cine'&&P.state!=='ult'&&grounded()){P.state='hurt';P.t=0;P.hurtDur=.28}
   hud()}
@@ -387,7 +389,9 @@ function update(dt){
   if(qq.void)doVoid();if(qq.skill)doSkill();if(qq.ult)doUlt();if(qq.swap)doSwap();if(qq.interact)doInteract();
   // 타이머
   P.iframe=Math.max(0,P.iframe-dt);P.dodgeCd=Math.max(0,P.dodgeCd-dt);P.dashCd=Math.max(0,P.dashCd-dt);P.skillCd=Math.max(0,P.skillCd-dt);P.flash=Math.max(0,P.flash-dt);
-  P.parryT=Math.max(0,P.parryT-dt);P.comboWin=Math.max(0,(P.comboWin||0)-dt);if(P.fear>0)P.fear=Math.max(0,P.fear-dt);if(P.bind>0)P.bind=Math.max(0,P.bind-dt);
+  P.parryT=Math.max(0,P.parryT-dt);P.comboWin=Math.max(0,(P.comboWin||0)-dt);
+  // 마스터 모드: 쿨타임 없음 · 공허/공명 무제한 · 무적
+  if(window.Master&&Master.on){const m=Master.opts;if(m.noCd){P.skillCd=0;P.dodgeCd=0;P.dashCd=0}if(m.freeRes){P.void=100;P.ult=100}if(m.god&&P.hp<P.max)P.hp=P.max}if(P.fear>0)P.fear=Math.max(0,P.fear-dt);if(P.bind>0)P.bind=Math.max(0,P.bind-dt);
   const charging=IN.atkDown&&!IN.heavyFired&&!IN.airHold&&IN.atkT>.15&&grounded();
   const spd=5.4*(P.fear>0?.75:1)*(charging?.35:1);
   // 상태별 움직임
