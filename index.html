@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 액팅 소울 : 0 — index.html  v0.5.1 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
+<!-- 액팅 소울 : 0 — index.html  v0.6.0 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -84,7 +84,7 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
 #box.done #next{opacity:1}
 @keyframes blink{50%{opacity:.2}}
 
-#hud{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;display:flex;gap:6px;z-index:20}
+#hud{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;display:flex;gap:6px;z-index:32}
 .hb{font-size:13px;padding:6px 11px;border:1px solid rgba(201,197,214,.3);background:rgba(15,12,26,.7);border-radius:2px;color:var(--silver)}
 .hb.on{border-color:var(--void);color:#fff;background:rgba(59,42,122,.7)}
 
@@ -457,6 +457,7 @@ body.pc .spr.spirit{height:30%}
   <div id="log" class="layer"><button class="hb" id="logClose">닫기</button><div id="logList"></div></div>
 
   <div id="hud">
+    <button class="hb" id="bSkip" title="다음 선택지·전투까지 넘기기 (S)">스킵</button>
     <button class="hb" id="bAuto">자동</button>
     <button class="hb" id="bLog">기록</button>
     <button class="hb" id="bSnd">소리 켬</button>
@@ -474,7 +475,7 @@ body.pc .spr.spirit{height:30%}
       <button class="tbtn" id="tUpd" style="font-size:15px;font-weight:400">업데이트 기록</button>
     </div>
     <div id="verWarn"></div>
-    <div class="ver">v0.5.1 · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
+    <div class="ver">v0.6.0 · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
   </div>
 
   <div id="end" class="layer">
@@ -486,25 +487,32 @@ body.pc .spr.spirit{height:30%}
   </div>
 </div>
 
-<!-- 3D 전투: 엔진 → 이펙트 → 무기 → 캐릭터 → 배경 → 전투 규칙 순서로 불러온다 -->
-<script src="engine.js"></script>
-<script src="effects.js"></script>
-<script src="weapons.js"></script>
-<script src="avatars.js"></script>
-<script src="stages.js"></script>
-<script src="action.js"></script>
+<!-- 3D 전투: js 폴더에서 엔진 → 이펙트 → 무기 → 캐릭터 → 배경 → 전투 규칙 순서로 불러온다.
+     js 폴더에 없으면 index.html 옆에서 다시 찾는다 (아래 checkFiles 참고) -->
+<script src="js/engine.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/avatars.js"></script>
+<script src="js/stages.js"></script>
+<script src="js/action.js"></script>
 <script>
 'use strict';
 /* ═══════════ 파일 확인 · 오류 표시 ═══════════ */
-const GAME_VERSION='0.5.1';
+const GAME_VERSION='0.6.0';
 const REQUIRED_FILES=['engine.js','effects.js','weapons.js','avatars.js','stages.js','action.js'];
 function showError(msg){const b=document.getElementById('errBox');if(!b)return;b.textContent='오류 — '+msg;b.classList.add('on');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('on'),15000)}
 addEventListener('error',e=>{const f=(e.filename||'').split('/').pop();showError((e.message||'알 수 없는 오류')+(f?`\n파일: ${f} ${e.lineno||''}줄`:''))});
 addEventListener('unhandledrejection',e=>showError(String(e.reason&&e.reason.message||e.reason)));
-function checkFiles(){const V=window.AS_VERSIONS||{};const bad=REQUIRED_FILES.filter(f=>V[f]!==GAME_VERSION).map(f=>V[f]?`${f} (v${V[f]})`:`${f} (없음)`);
-  if(!bad.length)return true;const w=document.getElementById('verWarn');
-  w.innerHTML=`<b>게임 파일이 맞지 않아 전투가 시작되지 않습니다.</b><br>없거나 버전이 다른 파일 (index.html 은 v${GAME_VERSION}): ${bad.join(', ')}<br>zip 안의 파일을 <b>전부</b> 같은 폴더에 다시 올린 뒤, 브라우저를 새로고침(휴대폰은 캐시 삭제)해 주세요.`;
+function badFiles(){const V=window.AS_VERSIONS||{};return REQUIRED_FILES.filter(f=>V[f]!==GAME_VERSION).map(f=>V[f]?`${f} (v${V[f]})`:`${f} (없음)`)}
+function checkFiles(){const bad=badFiles();const w=document.getElementById('verWarn');
+  if(!bad.length){w.classList.remove('on');document.getElementById('title').classList.remove('warn');return true}
+  if(!FILES_READY)return false;
+  w.innerHTML=`<b>게임 파일이 맞지 않아 전투가 시작되지 않습니다.</b><br>없거나 버전이 다른 파일 (index.html 은 v${GAME_VERSION}): ${bad.join(', ')}<br>js 파일 여섯 개를 <b>js 폴더</b>(또는 index.html 과 같은 폴더)에 전부 올린 뒤, 브라우저를 새로고침(휴대폰은 캐시 삭제)해 주세요.`;
   w.classList.add('on');document.getElementById('title').classList.add('warn');return false}
+// js 폴더에서 못 불러왔으면 index.html 옆에서 다시 차례대로 불러온다
+let FILES_READY=false;
+function loadSeq(base){return REQUIRED_FILES.reduce((p,f)=>p.then(()=>new Promise(r=>{const el=document.createElement('script');el.src=base+f;el.onload=r;el.onerror=r;document.head.appendChild(el)})),Promise.resolve())}
+const FILES_LOADED=(badFiles().length?loadSeq(''):Promise.resolve()).then(()=>{FILES_READY=true;checkFiles();if(window.Settings)Settings.apply()});
 
 const $=id=>document.getElementById(id);
 const stage=$('stage');
@@ -794,7 +802,12 @@ function typeLine(str,cls){const el=$('text');el.className=cls||'';$('box').clas
   return new Promise(res=>{const done=()=>{clearInterval(h);el.textContent=str;$('box').classList.add('done');typing=null;res()};
     const h=setInterval(()=>{i+=1;el.textContent=str.slice(0,i);if(i>=str.length)done()},26);
     typing={h,done}})}
-function waitTap(){return new Promise(r=>{advanceResolve=r;if(auto){const len=$('text').textContent.length;setTimeout(()=>{if(advanceResolve===r){advanceResolve=null;r()}},1100+len*35)}})}
+function waitTap(){return new Promise(r=>{if(skipping())return r();advanceResolve=r;if(auto){const len=$('text').textContent.length;setTimeout(()=>{if(advanceResolve===r){advanceResolve=null;r()}},1100+len*35)}})}
+// ── 스킵: 다음 선택지나 전투가 나올 때까지 대사·연출을 넘긴다
+const Skip={on:false};
+function skipping(){return Skip.on||Master.skip()}
+function setSkip(v){Skip.on=v;$('bSkip').classList.toggle('on',v);$('bSkip').textContent=v?'스킵 중':'스킵';
+  if(v){if(typing)typing.done();if(advanceResolve){const r=advanceResolve;advanceResolve=null;r()}}}
 function onTap(){SFX.play('ui');if(typing){typing.done();return}if(advanceResolve){const r=advanceResolve;advanceResolve=null;r()}}
 $('box').addEventListener('click',onTap);
 $('vn').addEventListener('click',e=>{if(e.target===$('vn'))onTap()});
@@ -805,15 +818,15 @@ async function say(name,text,kind){
   $('name').textContent=name||'';
   if(name)highlight(name);else for(const k in sprites)sprites[k].classList.remove('talk');
   logArr.push({name,text});
-  if(Master.skip()){$('text').className=kind||'';$('text').textContent=text;$('box').classList.add('done');await wait(16);return}
+  if(skipping()){$('text').className=kind||'';$('text').textContent=text;$('box').classList.add('done');await wait(16);return}
   await typeLine(text,kind);await waitTap();
 }
 async function toast(t,ms=2400){const el=$('toast');el.textContent=t;el.classList.add('on');SFX.play('void');await wait(ms);el.classList.remove('on');await wait(400)}
-async function showCard(act,ttl){$('cardAct').textContent=act;$('cardTtl').textContent=ttl;$('vn').style.display='none';$('card').classList.add('on');await wait(Master.skip()?250:2300);hideAll();$('card').classList.remove('on');await wait(700)}
+async function showCard(act,ttl){$('cardAct').textContent=act;$('cardTtl').textContent=ttl;$('vn').style.display='none';$('card').classList.add('on');for(let t=0;t<2300&&!skipping();t+=50)await wait(50);if(skipping())await wait(250);hideAll();$('card').classList.remove('on');await wait(700)}
 async function doFx(f){
   if(f==='shake'){stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');SFX.play('heavy')}
   if(f==='flash'){stage.classList.remove('flash');void stage.offsetWidth;stage.classList.add('flash');stage.classList.add('shake');SFX.play('heavy');setTimeout(()=>stage.classList.remove('flash','shake'),700)}
-  if(f==='void'){SFX.play('void');if(Master.skip())return;const e=$('eye');e.classList.add('on');await wait(1500);e.classList.remove('on');await wait(300)}
+  if(f==='void'){SFX.play('void');if(skipping())return;const e=$('eye');e.classList.add('on');await wait(1500);e.classList.remove('on');await wait(300)}
   if(f==='beat'){stage.classList.remove('beat');void stage.offsetWidth;stage.classList.add('beat');SFX.play('hurt');setTimeout(()=>stage.classList.remove('beat'),2300)}
 }
 function choose(q,opts){return new Promise(res=>{const c=$('choice');c.innerHTML=`<div class="q">${q.replace(/\n/g,'<br>')}</div>`;
@@ -831,18 +844,19 @@ async function runCmd(c){
   if(c.show){showSpr(c.show,c.pos);return}
   if(c.hide){hideSpr(c.hide);return}
   if(c.fx)return doFx(c.fx);
-  if(c.sys){$('vn').style.display='block';$('name').textContent='';logArr.push({name:'시스템',text:c.sys});if(Master.skip())return;await typeLine(c.sys,'sys');SFX.play('void');return waitTap()}
+  if(c.sys){$('vn').style.display='block';$('name').textContent='';logArr.push({name:'시스템',text:c.sys});if(skipping())return;await typeLine(c.sys,'sys');SFX.play('void');return waitTap()}
   if(c.card)return showCard(c.card[0],c.card[1]);
-  if(c.choice){G.partner=await choose(c.choice,c.opts);return}
+  if(c.choice){setSkip(false);G.partner=await choose(c.choice,c.opts);return}
   if(c.setName){G.edenName=c.setName;return}
   if(c.flag){G.flags[c.flag]=1;if(c.flag==='teror')G.absorbed++;return}
   if(c.save){save();return}
-  if(c.battle){save();$('vn').style.display='none';hideAll();const keepBg=$('bg').className;
+  if(c.battle){setSkip(false);save();$('vn').style.display='none';hideAll();const keepBg=$('bg').className;
+    await FILES_LOADED;
     if(!window.Action||!checkFiles()){await battleFail('전투 파일을 불러오지 못했습니다. 타이틀 화면의 안내를 확인해 주세요.')}
     else{try{await Action.run(c.battle,{partner:G.partner,flags:G.flags,name:G.edenName,onLose:()=>G.losses++})}
       catch(err){console.error(err);await battleFail('전투를 시작하지 못했습니다: '+(err&&err.message||err))}}
     $('bg').className=keepBg;$('vn').style.display='block';return}
-  if(c.end){G.absorbed=Math.max(G.absorbed,2);store.del('as0_save');return showEnd()}
+  if(c.end){setSkip(false);G.absorbed=Math.max(G.absorbed,2);store.del('as0_save');return showEnd()}
 }
 async function play(from){G.i=from;
   while(G.i<SCRIPT.length){const c=SCRIPT[G.i];await runCmd(c);G.i++;}
@@ -899,6 +913,7 @@ window.Master=(()=>{const D={skipStory:1,noCd:1,freeRes:1,god:0,partner:'A'};let
     $('masterOv').classList.remove('on');$('title').style.display='none';api.setOn(true);
     G={i:0,partner:o.partner,edenName:'이든',flags:Object.assign({},NEED[id]),losses:0,absorbed:0};
     $('vn').style.display='none';
+    await FILES_LOADED;
     if(!window.Action||!checkFiles())await battleFail('전투 파일을 불러오지 못했습니다. 타이틀 화면의 안내를 확인해 주세요.');
     else{try{await Action.run(id,{partner:G.partner,flags:G.flags,name:G.edenName,onLose:()=>G.losses++})}catch(err){await battleFail('전투를 시작하지 못했습니다: '+(err&&err.message||err))}}
     $('hud').style.display='none';$('title').style.display='flex';$('masterOv').classList.add('on')});
@@ -924,11 +939,13 @@ $('endBtn').onclick=()=>location.reload();
 /* ═══════════ 타이틀 / HUD ═══════════ */
 function startFrom(i){$('title').style.display='none';$('hud').style.display='flex';SFX.play('void');play(i)}
 const sv=store.get('as0_save');$('tCont').disabled=!sv;
-$('tNew').onclick=()=>{Master.setOn(false);store.del('as0_save');G={i:0,partner:'A',edenName:'대행자',flags:{},losses:0,absorbed:0};startFrom(0)};
+$('tNew').onclick=()=>{Master.setOn(false);setSkip(false);store.del('as0_save');G={i:0,partner:'A',edenName:'대행자',flags:{},losses:0,absorbed:0};startFrom(0)};
 $('tCont').onclick=()=>{Master.setOn(false);const s=store.get('as0_save');if(!s)return;G=s;
   // 저장 위치 직전의 배경을 복원
   let b='black';for(let k=0;k<=s.i;k++)if(SCRIPT[k].bg)b=SCRIPT[k].bg;setBg(b);startFrom(s.i)};
 $('hud').style.display='none';
+$('bSkip').onclick=e=>{e.stopPropagation();setSkip(!Skip.on)};
+addEventListener('keydown',e=>{if((e.key==='s'||e.key==='S')&&!e.repeat&&$('vn').style.display!=='none'&&$('title').style.display==='none'&&!$('act').classList.contains('on')&&!Settings.isOpen()){setSkip(!Skip.on)}});
 $('bAuto').onclick=e=>{e.stopPropagation();auto=!auto;$('bAuto').classList.toggle('on',auto);if(auto&&advanceResolve&&!typing){const r=advanceResolve;advanceResolve=null;r()}};
 $('bSnd').onclick=e=>{e.stopPropagation();Settings.set('sound',SFX.on?0:1)};
 $('bLog').onclick=e=>{e.stopPropagation();$('logList').innerHTML=logArr.slice(-80).map(l=>`<p>${l.name?`<b>${l.name}</b>`:''}${l.text.replace(/\n/g,'<br>')}</p>`).join('');$('log').classList.add('on');$('log').scrollTop=1e6};

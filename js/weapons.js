@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — weapons.js  v0.5.1
+/* 액팅 소울 : 0 — weapons.js  v0.6.0
    무기(아티팩트) 정의
 
    ■ 무기를 바꾸거나 추가하는 법
@@ -7,7 +7,7 @@
        parts : [도형, 위치, 회전, 크기, 색, 발광색] 의 목록
                손잡이가 원점, 칼날은 -y 방향(손에서 뻗어 나가는 쪽)으로 만든다.
      도형 이름은 engine.js 의 box / sphere / cyl:아래:위:면수 / cone / cone4 를 쓴다. */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['weapons.js']='0.5.1';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['weapons.js']='0.6.0';
 
 (function(){
 'use strict';

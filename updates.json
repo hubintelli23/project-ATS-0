@@ -1,8 +1,65 @@
 {
   "project": "액팅 소울 : 0 — 3D 액션 체험판",
-  "current": "v0.5.1",
+  "current": "0.6.0",
   "note": "버전별 업데이트 기록. 최신 버전이 맨 위. 새 버전을 낼 때 updates 배열 맨 앞에 항목을 추가한다.",
   "updates": [
+    {
+      "version": "0.6.0",
+      "date": "2026-11-20",
+      "title": "스토리 스킵 기능",
+      "summary": "스토리 화면에 스킵 버튼(PC는 S키)을 추가해 다음 선택지나 전투까지 대사와 연출을 한 번에 넘길 수 있다.",
+      "added": [
+        "스토리 화면 상단에 「스킵」 버튼 추가 — 누르면 「스킵 중」으로 바뀌고 다음 선택지·전투까지 대사, 시스템 메시지, 막 타이틀 카드를 빠르게 넘긴다",
+        "PC: S키로 스킵 켜기/끄기",
+        "선택지·전투·엔딩에 도달하면 스킵이 자동으로 꺼진다(다시 누르면 멈춤)"
+      ],
+      "changed": [
+        "상단 버튼(스킵·자동·기록 등)이 막 타이틀 카드 위에 표시되도록 우선순위 조정",
+        "마스터 모드의 스토리 자동 넘김도 같은 스킵 로직을 사용"
+      ],
+      "fixed": [
+        "대사가 타이핑되는 중에 스킵을 누르면 그 줄에서 멈추던 문제"
+      ],
+      "files": [
+        "index.html",
+        "js/engine.js",
+        "js/effects.js",
+        "js/weapons.js",
+        "js/avatars.js",
+        "js/stages.js",
+        "js/action.js",
+        "updates.json",
+        "README.md"
+      ]
+    },
+    {
+      "version": "v0.5.2",
+      "date": "2026-11-20",
+      "title": "js 폴더 구조 지원 (전투 진입 문제 해결)",
+      "summary": "js 파일을 js 폴더에 둔 저장소에서 index.html 이 파일을 찾지 못해 전투가 시작되지 않던 문제를 고쳤다.",
+      "added": [
+        "js 폴더에서 못 찾으면 index.html 과 같은 폴더에서 자동으로 다시 찾는 기능 (두 구조 모두 동작)"
+      ],
+      "changed": [
+        "index.html 이 js 파일을 js 폴더(js/engine.js 등)에서 불러오도록 변경",
+        "zip 구조를 index.html · js/ · img/ · updates.json · README.md 로 정리",
+        "파일 확인 안내 문구에 js 폴더 위치 안내 추가"
+      ],
+      "fixed": [
+        "GitHub 저장소에서 js 파일이 js 폴더에 있을 때 '(없음)'으로 표시되고 전투가 시작되지 않던 문제"
+      ],
+      "files": [
+        "index.html",
+        "js/engine.js",
+        "js/effects.js",
+        "js/weapons.js",
+        "js/avatars.js",
+        "js/stages.js",
+        "js/action.js",
+        "updates.json",
+        "README.md"
+      ]
+    },
     {
       "version": "v0.5.1",
       "date": "2026-11-20",
