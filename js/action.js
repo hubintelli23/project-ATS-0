@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — action.js  v0.7.2
+/* 액팅 소울 : 0 — action.js  v0.7.3
    3D 실시간 전투의 규칙: 입력(컴퓨터·휴대폰), 3인칭 백뷰 카메라, 보스 패턴, 판정,
    튜토리얼, 아이템, 지도, HUD.  그리는 일은 다른 파일이 맡는다.
      engine.js  : 3D 엔진       avatars.js : 캐릭터
@@ -17,7 +17,7 @@
      Space       점프 · Space+좌클릭 점프 공격 · Space+Ctrl+좌클릭 점프 강공격
      F           상호작용 (아이템 줍기 · 단죄)
      M           지도          Esc  설정 */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.7.2';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.7.3';
 
 (function(){
 'use strict';

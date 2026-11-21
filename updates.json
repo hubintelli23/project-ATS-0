@@ -1,8 +1,27 @@
 {
   "project": "액팅 소울 : 0 — 3D 액션 체험판",
-  "current": "0.7.2",
+  "current": "0.7.3",
   "note": "버전별 업데이트 기록. 최신 버전이 맨 위. 새 버전을 낼 때 updates 배열 맨 앞에 항목을 추가한다.",
   "updates": [
+    {
+      "version": "0.7.3",
+      "date": "2026-11-21",
+      "title": "공허의 결정 이미지 추가",
+      "summary": "감정 결정 시리즈에 「공허의 결정」 이미지를 추가했다.",
+      "added": [
+        "img/emblems/void_crystal.webp — 자료실 「감정 문장 · 결정」 맨 앞"
+      ],
+      "changed": [],
+      "fixed": [],
+      "files": [
+        "index.html",
+        "js/assets.js",
+        "js/*.js (버전만)",
+        "img/emblems/void_crystal.webp",
+        "updates.json",
+        "README.md"
+      ]
+    },
     {
       "version": "0.7.2",
       "date": "2026-11-21",
