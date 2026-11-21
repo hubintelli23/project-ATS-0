@@ -1,11 +1,11 @@
-/* 액팅 소울 : 0 — effects.js  v0.6.0
+/* 액팅 소울 : 0 — effects.js  v0.7.2
    이펙트: 베기 궤적(3D 호), 불꽃·빛 입자, 충격파 고리, 단죄 빛기둥, 바닥 공격 예고, 그림자
 
    ■ 이펙트를 바꾸는 법
      - 모양(텍스처)은 makeTextures 안의 그림 함수를 고친다.
      - 종류별 크기·수명·움직임은 FX.spawn 의 type 분기를 고친다.
      - 나중에 이미지 파일(png/webp) 이펙트를 쓰려면 E.texFrom(이미지) 로 같은 이름의 텍스처를 덮어쓰면 된다. */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['effects.js']='0.6.0';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['effects.js']='0.7.2';
 
 (function(){
 'use strict';

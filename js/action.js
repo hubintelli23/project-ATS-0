@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — action.js  v0.6.0
+/* 액팅 소울 : 0 — action.js  v0.7.2
    3D 실시간 전투의 규칙: 입력(컴퓨터·휴대폰), 3인칭 백뷰 카메라, 보스 패턴, 판정,
    튜토리얼, 아이템, 지도, HUD.  그리는 일은 다른 파일이 맡는다.
      engine.js  : 3D 엔진       avatars.js : 캐릭터
@@ -17,7 +17,7 @@
      Space       점프 · Space+좌클릭 점프 공격 · Space+Ctrl+좌클릭 점프 강공격
      F           상호작용 (아이템 줍기 · 단죄)
      M           지도          Esc  설정 */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.6.0';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.7.2';
 
 (function(){
 'use strict';
@@ -142,7 +142,17 @@ function start(id){curId=id;DEF=DEFS[id];const st=Stages.build(DEF.stage);FX.cle
   S.paused=false;S.ending=false;hud();
   intro();
 }
-async function intro(){S.paused=true;await wait(400);
+// 전투 시작 카드: 초상 · 무기 · 감정 문장 (이미지는 img/ 폴더, 목록은 assets.js)
+const CARD={kardo:{p:'img/kardo.webp'},
+  furor:{p:'img/furor.webp',w:'img/weapons/furor.webp',e:'img/emblems/anger.webp'},
+  fallen:{e:'img/emblems/fear_crystal.webp'},
+  teror:{p:'img/teror.webp',e:'img/emblems/fear.webp'},
+  phobia:{p:'img/phobia.webp',e:'img/emblems/fear.webp'}};
+async function bossCard(){const c=CARD[curId],d=DEFS[curId],el=$('bossCard');if(!c||!el)return;
+  const set=(id,src)=>{const im=$(id);im.style.display=src?'':'none';if(src)im.src=src};
+  set('bcPor',c.p);set('bcWep',c.w);set('bcEm',c.e);$('bcName').textContent=d.name;$('bcSub').textContent=d.sub||'';
+  el.classList.add('on');await wait(window.Master&&Master.on?500:1700);el.classList.remove('on');await wait(150)}
+async function intro(){S.paused=true;await wait(300);await bossCard();
   if(curId==='kardo'){await say('카르도','“검을 쥐어라. 오늘 가르칠 건 여러 가지다. 하나씩 몸에 새겨 넣어라.”')}
   S.paused=false;
   const T0={furor:['“저 열기, 시간이 갈수록 쌓여. 공허가 40 차면 「공허의 시야」로 지워버려.”','“주인! 저 언니 점점 뜨거워져! 공허 40 모이면 「공허의 시야」로 꺼버리자!”'],

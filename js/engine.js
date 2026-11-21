@@ -1,10 +1,10 @@
-/* 액팅 소울 : 0 — engine.js  v0.6.0
+/* 액팅 소울 : 0 — engine.js  v0.7.2
    3D 렌더링 엔진 (외부 라이브러리 없음, WebGL 1)
    - 툰 셰이딩 + 외곽선(인버티드 헐) 메시
    - 기본 도형: box / sphere / cyl(원기둥·원뿔대) / limb / disc / arc / ring / quad
    - 텍스처 쿼드(파티클·바닥 표시)
    캐릭터·무기·이펙트·배경 파일은 이 엔진의 E.mesh / E.quad 만 사용한다. */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['engine.js']='0.6.0';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['engine.js']='0.7.2';
 
 (function(){
 'use strict';

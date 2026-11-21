@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 액팅 소울 : 0 — index.html  v0.6.0 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
+<!-- 액팅 소울 : 0 — index.html  v0.7.2 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -101,7 +101,7 @@ button:focus-visible{outline:2px solid var(--void);outline-offset:2px}
 #choice.on{display:flex}
 #choice .q{font-family:var(--serif);font-size:18px;text-align:center;line-height:1.7;margin-bottom:10px;word-break:keep-all}
 .opt{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid rgba(201,197,214,.35);background:rgba(20,17,32,.9);text-align:left;border-radius:2px}
-.opt img{width:46px;height:46px;flex:none}
+.opt img{width:52px;height:52px;flex:none;object-fit:contain}
 .opt b{display:block;font-family:var(--serif);font-size:18px;color:#fff}
 .opt span{font-size:13px;color:#a7a2b8}
 .opt:active{border-color:var(--void);background:rgba(59,42,122,.6)}
@@ -256,6 +256,40 @@ body.pc #atut.on~#atip{top:330px}
 body.master #mBadge{display:block}
 body.touch #mBadge{bottom:auto;top:calc(186px + env(safe-area-inset-top));left:12px;transform:none}
 #updOv{z-index:70}
+/* 자료실 */
+#galOv{display:none;z-index:70;align-items:center;justify-content:center;background:rgba(5,4,10,.86);padding:16px}#galOv.on{display:flex}
+.galbox{width:min(980px,100%);height:min(760px,100%);display:flex;flex-direction:column}
+.galtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.galtabs button{padding:7px 12px;font-size:13.5px;color:#c9c5d6;border:1px solid rgba(201,197,214,.3);border-radius:2px;background:transparent}
+.galtabs button.on{color:#fff;border-color:#8f7bff;background:rgba(59,42,122,.55)}
+.galgrid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;align-content:start}
+.gcell{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 6px 9px;border:1px solid rgba(201,197,214,.16);border-radius:2px;background:radial-gradient(circle at 50% 40%,rgba(70,58,110,.35),rgba(14,12,24,.6))}
+.gcell img{width:100%;height:140px;object-fit:contain}
+.gcell b{font-size:12.5px;font-weight:500;color:#e8e4f4;text-align:center;line-height:1.3;word-break:keep-all}
+.gcell i{position:absolute;top:5px;left:5px;font:700 10px var(--sans);font-style:normal;color:#ffd36a;background:rgba(30,22,8,.8);border:1px solid rgba(255,211,106,.5);padding:1px 5px;border-radius:2px}
+.gcell:active,.gcell:focus-visible{border-color:#8f7bff}
+.gteam{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 2px 2px;border-bottom:1px solid rgba(201,197,214,.18)}.gteam:first-child{padding-top:0}.gteam img{width:30px;height:30px;object-fit:contain}.gteam b{font-family:var(--serif);font-size:16px}
+#galView{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,4,10,.95);padding:20px;z-index:2}
+#galView.on{display:flex}#galView img{max-width:100%;max-height:calc(100% - 90px);object-fit:contain}
+#galView div{text-align:center}#galView b{display:block;font-family:var(--serif);font-size:20px}#galView span{font-size:13px;color:#a49fb5}#galView small{color:#7d7891;font-size:12px}
+/* 스토리 연출 이미지 */
+#art{position:absolute;inset:0;z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;opacity:0;transition:opacity .45s;background:radial-gradient(circle,rgba(30,20,60,.55),rgba(5,4,10,.15) 70%)}
+#art.on{opacity:1}#art .row{display:flex;align-items:center;justify-content:center;gap:4vw}
+#art img{height:min(34vh,300px);max-width:40vw;object-fit:contain;filter:drop-shadow(0 0 24px rgba(143,123,255,.55));animation:artIn .9s ease-out both}
+#art img+img{animation-delay:.25s}
+#art p{font-family:var(--serif);font-size:18px;color:#fff;text-shadow:0 0 12px rgba(143,123,255,.9);letter-spacing:.08em}
+@keyframes artIn{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+/* 전투 시작 보스 카드 */
+#bossCard{position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;pointer-events:none;background:linear-gradient(90deg,rgba(5,4,10,.0),rgba(5,4,10,.82) 30%,rgba(5,4,10,.82) 70%,rgba(5,4,10,0))}
+#bossCard.on{display:flex;animation:bcIn .35s ease-out}
+#bossCard .bc{position:relative;display:flex;align-items:center;gap:22px;padding:0 20px;max-width:100%}
+#bossCard .por{height:min(56vh,440px);max-width:38vw;object-fit:contain;animation:bcPor .7s ease-out both}
+#bossCard .wep{position:absolute;left:50%;top:50%;height:min(62vh,480px);max-width:60vw;object-fit:contain;transform:translate(-50%,-50%) rotate(-28deg);opacity:.32;filter:blur(.3px);z-index:-1}
+#bossCard .em{width:64px;height:64px;object-fit:contain;display:block;margin-bottom:8px}
+#bossCard h2{font-family:var(--serif);font-size:clamp(30px,6vw,52px);letter-spacing:.12em;color:#fff}
+#bossCard p{color:#c9c5d6;font-size:14px;margin-top:6px}
+@keyframes bcIn{from{opacity:0}to{opacity:1}}@keyframes bcPor{from{transform:translateX(-30px);opacity:0}to{transform:none;opacity:1}}
+body.touch #bossCard .bc{flex-direction:column;gap:8px;text-align:center}body.touch #bossCard .em{margin:0 auto 6px}body.touch #bossCard .por{height:min(40vh,320px);max-width:70vw}
 .upd{padding:12px 0;border-bottom:1px solid rgba(201,197,214,.15)}.upd h3{font-family:var(--serif);font-size:16px}.upd h3 small{font-family:var(--sans);font-size:12px;color:#a49fb5;margin-left:8px}.upd p{font-size:13.5px;color:#c9c5d6;margin:6px 0;line-height:1.6;word-break:keep-all}.upd h4{font-size:12px;color:#ffc27a;margin-top:8px}.upd ul{margin:4px 0 0 18px;font-size:13px;line-height:1.6;color:#ddd8ea;word-break:keep-all}
 .mapbox,.setbox{background:rgba(18,15,30,.97);border:1px solid rgba(201,197,214,.35);border-radius:4px;padding:16px 18px;width:min(560px,100%);max-height:100%;overflow:auto}
 .maphead{display:flex;align-items:center;gap:10px;margin-bottom:10px}.maphead b{font-family:var(--serif);font-size:18px}.maphead span{color:#a49fb5;font-size:13px;flex:1}
@@ -342,6 +376,7 @@ body.pc .spr.spirit{height:30%}
     <canvas id="gl"></canvas>
     <div id="lookZone"></div>
     <div id="vfx"></div>
+    <div id="bossCard"><div class="bc"><img class="wep" id="bcWep" alt=""><img class="por" id="bcPor" alt=""><div><img class="em" id="bcEm" alt=""><h2 id="bcName"></h2><p id="bcSub"></p></div></div></div>
     <div class="ab">
       <div class="nm" id="aName"></div><div class="sb" id="aSub"></div>
       <div class="bar"><i class="lag" id="aLag"></i><i id="aHp"></i><span class="jm" id="aJudgeMark"></span></div>
@@ -415,6 +450,14 @@ body.pc .spr.spirit{height:30%}
     <div class="sbtns"><button class="tbtn" id="mStory">마스터 모드로 처음부터</button></div>
   </div></div>
 
+  <!-- 자료실 (assets.js 의 이미지 목록) -->
+  <div id="galOv" class="layer"><div class="setbox galbox">
+    <div class="maphead"><b>자료실</b><span id="galCount"></span><button class="tb" id="galClose">닫기</button></div>
+    <div class="galtabs" id="galTabs"></div>
+    <div class="galgrid" id="galGrid"></div>
+  </div>
+  <div id="galView"><img id="galBig" alt=""><div><b id="galName"></b><span id="galTag"></span></div><small>화면을 누르면 닫힙니다</small></div></div>
+
   <!-- 업데이트 기록 (updates.json) -->
   <div id="updOv" class="layer"><div class="setbox">
     <div class="maphead"><b>업데이트 기록</b><span></span><button class="tb" id="updClose">닫기</button></div>
@@ -454,6 +497,7 @@ body.pc .spr.spirit{height:30%}
   <div id="card" class="layer"><div class="act" id="cardAct"></div><div class="ttl" id="cardTtl"></div><div class="rule"></div></div>
   <div id="result" class="layer"></div>
   <div id="eye" class="layer"><div class="orb"></div></div>
+  <div id="art"></div>
   <div id="log" class="layer"><button class="hb" id="logClose">닫기</button><div id="logList"></div></div>
 
   <div id="hud">
@@ -472,10 +516,11 @@ body.pc .spr.spirit{height:30%}
       <button class="tbtn" id="tNew">처음부터</button>
       <button class="tbtn" id="tCont">이어하기</button>
       <button class="tbtn" id="tMaster" style="font-size:15px;font-weight:400">마스터 모드</button>
+      <button class="tbtn" id="tGal" style="font-size:15px;font-weight:400">자료실</button>
       <button class="tbtn" id="tUpd" style="font-size:15px;font-weight:400">업데이트 기록</button>
     </div>
     <div id="verWarn"></div>
-    <div class="ver">v0.6.0 · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
+    <div class="ver"><span id="verNo">v0.7.2</span> · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
   </div>
 
   <div id="end" class="layer">
@@ -494,12 +539,13 @@ body.pc .spr.spirit{height:30%}
 <script src="js/weapons.js"></script>
 <script src="js/avatars.js"></script>
 <script src="js/stages.js"></script>
+<script src="js/assets.js"></script>
 <script src="js/action.js"></script>
 <script>
 'use strict';
 /* ═══════════ 파일 확인 · 오류 표시 ═══════════ */
-const GAME_VERSION='0.6.0';
-const REQUIRED_FILES=['engine.js','effects.js','weapons.js','avatars.js','stages.js','action.js'];
+const GAME_VERSION='0.7.2';
+const REQUIRED_FILES=['engine.js','effects.js','weapons.js','avatars.js','stages.js','assets.js','action.js'];
 function showError(msg){const b=document.getElementById('errBox');if(!b)return;b.textContent='오류 — '+msg;b.classList.add('on');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('on'),15000)}
 addEventListener('error',e=>{const f=(e.filename||'').split('/').pop();showError((e.message||'알 수 없는 오류')+(f?`\n파일: ${f} ${e.lineno||''}줄`:''))});
 addEventListener('unhandledrejection',e=>showError(String(e.reason&&e.reason.message||e.reason)));
@@ -511,6 +557,7 @@ function checkFiles(){const bad=badFiles();const w=document.getElementById('verW
   w.classList.add('on');document.getElementById('title').classList.add('warn');return false}
 // js 폴더에서 못 불러왔으면 index.html 옆에서 다시 차례대로 불러온다
 let FILES_READY=false;
+document.addEventListener('DOMContentLoaded',()=>{const v=document.getElementById('verNo');if(v)v.textContent='v'+GAME_VERSION});
 function loadSeq(base){return REQUIRED_FILES.reduce((p,f)=>p.then(()=>new Promise(r=>{const el=document.createElement('script');el.src=base+f;el.onload=r;el.onerror=r;document.head.appendChild(el)})),Promise.resolve())}
 const FILES_LOADED=(badFiles().length?loadSeq(''):Promise.resolve()).then(()=>{FILES_READY=true;checkFiles();if(window.Settings)Settings.apply()});
 
@@ -583,8 +630,8 @@ const SCRIPT=[
  fx('flash'),
  N('쿠아앙—!\n한계를 넘어선 반발 작용이 대행자의 전신을 강타했다. 손에 쥐여 있던 시너지아가 단말마 같은 공명음을 내며 튕겨 나갔다.'),
  {choice:'흩어지는 두 자루의 검.\n마지막까지 손끝에 남은 것은?',opts:[
-   {k:'A',img:'img/ic_sentia.webp',t:'센티아',d:'이성의 검 · 냉철한 조언자, 방어와 설계'},
-   {k:'B',img:'img/ic_sensus.webp',t:'센수스',d:'본성의 검 · 감정의 증폭기, 폭발적인 일격'}]},
+   {k:'A',img:'img/logos/sentia.webp',t:'센티아',d:'이성의 검 · 냉철한 조언자, 방어와 설계'},
+   {k:'B',img:'img/logos/sensus.webp',t:'센수스',d:'본성의 검 · 감정의 증폭기, 폭발적인 일격'}]},
  hide('eden'),
  N('제어기를 놓친 대행자의 안광이 급격히 꺼졌다.'),
  N('멀리서 소중한 이를 잃은 존재의 절망적인 통곡이, 무너져 내리는 세계의 비명과 섞여 들려왔다.'),
@@ -699,6 +746,7 @@ const SCRIPT=[
    S('센티아','“하! 이제야 온 거야? 이 멍청한 주인 녀석! 내가 여기 있으면서 얼마나 시끄러웠는지 알아?”'),
    S('센수스','“에헤헤, 센티아 언니! 보고 싶었어! 이제 우리 셋이 다시 함께하네!”')),
  {flag:'reunited'},
+ {art:['logos/sentia','logos/sensus'],cap:'시너지아 합일'},
  sys('시너지아의 힘을 되찾았습니다.\n새 기술 「합일 · 공명 베기」'),
  S('센티아','“치… 시끄러우니까 그만 울어. 이제 합쳐졌으니까 어디 안 가.”'),
  S('센수스','“헤헤, 언니가 주인 걱정 엄청 많이 했대요! 잠잘 때마다 주인 이름 부르면서…….”'),
@@ -723,6 +771,7 @@ const SCRIPT=[
  hide('teror'),
  N('테로르의 육신이 검은 연기로 화해 흩어지기 시작했다. 그 연기는 허공으로 사라지는 대신, 자석에 이끌리듯 이든의 손으로 거칠게 빨려 들어갔다.'),
  {flag:'teror'},
+ {art:['emblems/absorb'],cap:'흡융 · 테로르의 사념'},
  sys('고위 바디움 ‘테로르’의 사념을 포획했습니다.\n새 기술 「에고웨폰 · 테로르」'),
  N('사당의 공기가 기분 나쁠 정도로 차갑게 얼어붙었다. 어둠 속에서 하이힐 소리가 규칙적으로 울려 퍼졌다.'),
  show('phobia','r'),
@@ -742,6 +791,7 @@ const SCRIPT=[
  S('포비아','“하… 하하하. 집행자님께서 공들여 찾던 그릇이… 이런 재앙 덩어리였다니. 하지만 좋아, 이든. 내 성흔을 삼킨 대가는 곧 치르게 될 거야. 그 안에서 자라날 비명이 기대되는걸…….”'),
  hide('phobia'),
  N('이든은 대답 대신 검을 내리꽂았다. 그 중심에서 영롱하게 빛나는 [두려움의 성흔]의 정수가 그의 손으로 빨려 들어갔다.'),
+ {art:['emblems/fear_crystal','emblems/absorb'],cap:'두려움의 성흔'},
  sys('두려움의 성흔(포비아) 흡수 완료.\n‘공허’의 내벽에 첫 번째 균열이 발생합니다.\n감정 동기화율 1.2% 상승.'),
  fx('beat'),
  N('아무것도 담기지 않았던 텅 빈 심연 위로, 포비아가 남긴 ‘두려움’이 들러붙었다.\n등줄기를 타고 흐르는 식은땀. 불규칙하게 요동치는 심장 박동.'),
@@ -823,6 +873,11 @@ async function say(name,text,kind){
 }
 async function toast(t,ms=2400){const el=$('toast');el.textContent=t;el.classList.add('on');SFX.play('void');await wait(ms);el.classList.remove('on');await wait(400)}
 async function showCard(act,ttl){$('cardAct').textContent=act;$('cardTtl').textContent=ttl;$('vn').style.display='none';$('card').classList.add('on');for(let t=0;t<2300&&!skipping();t+=50)await wait(50);if(skipping())await wait(250);hideAll();$('card').classList.remove('on');await wait(700)}
+// 스토리 연출 이미지: 가운데에 이미지를 띄우고 터치/Space 로 넘김 (스킵 중엔 건너뜀)
+async function showArt(list,cap){if(skipping())return;const a=$('art');
+  a.innerHTML='<div class="row">'+list.map(k=>`<img src="img/${k}.webp" alt="">`).join('')+'</div>'+(cap?`<p>${cap}</p>`:'');
+  SFX.play('void');a.classList.add('on');$('box').classList.remove('done');
+  let mine;const tap=new Promise(r=>{mine=r;advanceResolve=r});await Promise.race([wait(2600),tap]);if(advanceResolve===mine)advanceResolve=null;a.classList.remove('on');await wait(350)}
 async function doFx(f){
   if(f==='shake'){stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');SFX.play('heavy')}
   if(f==='flash'){stage.classList.remove('flash');void stage.offsetWidth;stage.classList.add('flash');stage.classList.add('shake');SFX.play('heavy');setTimeout(()=>stage.classList.remove('flash','shake'),700)}
@@ -844,6 +899,7 @@ async function runCmd(c){
   if(c.show){showSpr(c.show,c.pos);return}
   if(c.hide){hideSpr(c.hide);return}
   if(c.fx)return doFx(c.fx);
+  if(c.art)return showArt(c.art,c.cap);
   if(c.sys){$('vn').style.display='block';$('name').textContent='';logArr.push({name:'시스템',text:c.sys});if(skipping())return;await typeLine(c.sys,'sys');SFX.play('void');return waitTap()}
   if(c.card)return showCard(c.card[0],c.card[1]);
   if(c.choice){setSkip(false);G.partner=await choose(c.choice,c.opts);return}
@@ -893,7 +949,7 @@ window.Settings=(()=>{const D={sound:1,shake:1,assist:1,sens:1,invertY:0,quality
 Settings.apply();
 $('bSet').onclick=e=>{e.stopPropagation();Settings.open()};
 $('mapClose').onclick=()=>Action.closeMap();
-addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();if($('mapOv').classList.contains('on')){Action.closeMap();return}Settings.toggle()}});
+addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();if(Gallery.isOpen()){Gallery.close();return}if($('updOv').classList.contains('on')){$('updOv').classList.remove('on');return}if($('mapOv').classList.contains('on')){Action.closeMap();return}Settings.toggle()}});
 
 // 전투를 시작할 수 없을 때: 이유를 보여주고 스토리를 계속 진행할 수 있게 한다
 function battleFail(msg){showError(msg);return new Promise(res=>{const r=$('result');r.innerHTML=`<h2>전투를 열 수 없다</h2><p>${msg}</p><button class="tbtn" id="retry" style="width:220px">전투 건너뛰고 계속</button>`;r.classList.add('on');$('retry').onclick=()=>{r.classList.remove('on');res()}})}
@@ -929,6 +985,26 @@ $('tUpd').onclick=async()=>{const L=$('updList');L.textContent='불러오는 중
     L.innerHTML=d.updates.map(u=>`<div class="upd"><h3>${esc(u.version)} · ${esc(u.title)}<small>${esc(u.date)}</small></h3><p>${esc(u.summary)}</p>${sec('추가',u.added)}${sec('변경',u.changed)}${sec('수정',u.fixed)}</div>`).join('')}
   catch(e){L.textContent='updates.json 을 불러오지 못했습니다. 웹 주소(GitHub Pages 등)로 열었는지 확인하세요.'}};
 $('updClose').onclick=()=>$('updOv').classList.remove('on');
+
+/* ═══════════ 자료실 (assets.js) ═══════════ */
+const Gallery=(()=>{let cat='chars';
+  function render(){const A=window.ASSETS;if(!A){$('galGrid').textContent='assets.js 를 불러오지 못했습니다.';return}
+    const cats=['chars','unitas','weapons','emblems','logos'];
+    $('galTabs').innerHTML=cats.map(c=>`<button data-c="${c}" class="${c===cat?'on':''}">${A.labels[c]} ${A[c].length}</button>`).join('');
+    $('galTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{cat=b.dataset.c;render();$('galGrid').scrollTop=0});
+    $('galCount').textContent='전체 '+cats.reduce((n,c)=>n+A[c].length,0)+'점';
+    let last=null;
+    $('galGrid').innerHTML=A[cat].map((it,i)=>{let h='';
+      if(it.team&&it.team!==last){last=it.team;const T=(A.teams||{})[it.team]||{name:it.team};h=`<div class="gteam">${T.em?`<img src="img/${T.em}.webp" alt="">`:''}<b>${T.name}</b></div>`}
+      return h+`<button class="gcell" data-i="${i}">${it.demo?'<i>체험판 등장</i>':''}<img loading="lazy" src="${A.src(cat,it.id)}" alt=""><b>${it.name}</b></button>`}).join('');
+    $('galGrid').querySelectorAll('.gcell').forEach(b=>b.onclick=()=>{const it=A[cat][+b.dataset.i];
+      $('galBig').src=A.src(cat,it.id);$('galName').textContent=it.name;$('galTag').textContent=A.labels[cat]+(it.team&&A.teams&&A.teams[it.team]?' · '+A.teams[it.team].name:'')+(it.demo?' · 체험판 등장':'');$('galView').classList.add('on');SFX.play('ui')})}
+  const api={isOpen:()=>$('galOv').classList.contains('on'),
+    open(){render();$('galOv').classList.add('on')},
+    close(){if($('galView').classList.contains('on')){$('galView').classList.remove('on');return}$('galOv').classList.remove('on')}};
+  $('tGal').onclick=()=>FILES_LOADED.then(api.open);$('galClose').onclick=()=>{$('galView').classList.remove('on');$('galOv').classList.remove('on')};
+  $('galView').onclick=()=>$('galView').classList.remove('on');
+  return api})();
 
 /* ═══════════ 엔딩 ═══════════ */
 function showEnd(){$('vn').style.display='none';$('hud').style.display='none';
