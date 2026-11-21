@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 액팅 소울 : 0 — index.html  v0.7.3 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
+<!-- 액팅 소울 : 0 — index.html  v0.8.0 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -171,6 +171,12 @@ body.touch #mini{right:10px;top:calc(56px + env(safe-area-inset-top));width:86px
 body.pc .topbtn{right:20px;top:18px}
 .tb{font-size:12.5px;padding:6px 10px;border:1px solid rgba(201,197,214,.35);background:rgba(15,12,26,.75);border-radius:3px;color:var(--silver);cursor:pointer}
 /* 화면 가운데 알림 · 피해 숫자 */
+#fuseBar{position:absolute;left:50%;top:calc(132px + env(safe-area-inset-top));transform:translateX(-50%);width:min(440px,86vw);text-align:center;pointer-events:none;display:none;z-index:6}
+#fuseBar.on{display:block;animation:fuseIn .3s}#fuseBar b{display:block;font-family:var(--serif);font-size:44px;line-height:1;color:#ffb067;text-shadow:0 0 14px rgba(255,120,40,.9),0 0 4px #000}
+#fuseBar .fb{height:6px;margin:6px 0 5px;background:rgba(0,0,0,.55);border:1px solid rgba(255,170,90,.6)}#fuseBar .fb i{display:block;height:100%;background:linear-gradient(90deg,#7cc8ff,#ff9a4a);transition:width .25s linear}
+#fuseBar span{font-size:13px;color:#fff;text-shadow:0 0 6px #000,0 0 2px #000}
+@keyframes fuseIn{from{opacity:0;transform:translateX(-50%) scale(1.2)}to{opacity:1;transform:translateX(-50%)}}
+body.touch #fuseBar{top:40%}body.touch #fuseBar b{font-size:36px}
 #acall{position:absolute;left:0;right:0;top:26%;text-align:center;font-family:var(--serif);font-weight:800;font-size:19px;color:#fff;text-shadow:0 0 12px #000,0 0 3px #000;opacity:0;transform:translateY(6px);transition:.15s;pointer-events:none}
 #acall.on{opacity:1;transform:none}#acall.org{color:#ffc27a}#acall.red{color:#ff8c8c}#acall.vio{color:#d6c8ff}
 .anum{position:absolute;transform:translate(-50%,-50%);font-family:var(--serif);font-weight:800;font-size:24px;color:#fff;text-shadow:0 0 8px #000,0 0 2px #000;pointer-events:none;animation:pop .9s forwards}
@@ -386,6 +392,7 @@ body.pc .spr.spirit{height:30%}
     <div id="mini"><canvas id="miniC" width="220" height="220"></canvas><div id="miniName"></div></div>
     <div class="topbtn"><button class="tb" data-k="map">지도<span class="kb">M</span></button><button class="tb" data-k="esc">설정<span class="kb">Esc</span></button></div>
     <div id="acall"></div>
+    <div id="fuseBar"><b>14</b><div class="fb"><i></i></div><span></span></div>
     <div id="mBadge">MASTER</div>
     <div id="offArrow"></div>
     <div id="prompt"><span class="kb">F</span><span id="promptText"></span></div>
@@ -446,6 +453,7 @@ body.pc .spr.spirit{height:30%}
       <button class="tbtn" data-battle="fallen">폴른 무리</button>
       <button class="tbtn" data-battle="teror">테로르</button>
       <button class="tbtn" data-battle="phobia">포비아</button>
+      <button class="tbtn" data-battle="nesis" style="border-color:rgba(255,160,80,.7)">네시스 · 흡융 기믹 (시험)</button>
     </div>
     <div class="sbtns"><button class="tbtn" id="mStory">마스터 모드로 처음부터</button></div>
   </div></div>
@@ -469,6 +477,7 @@ body.pc .spr.spirit{height:30%}
     <h2>설정</h2>
     <div class="srow"><span>소리</span><div class="seg" data-set="sound"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
     <div class="srow"><span>화면 흔들림</span><div class="seg" data-set="shake"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
+    <div class="srow"><span>진동 (피격·화면 흔들림)<small style="display:block;color:#8c87a0;font-size:11.5px">안드로이드 휴대폰 지원 · 아이폰은 브라우저가 막음</small></span><div class="seg" data-set="vibe"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
     <div class="srow"><span>시점 보정 (공격 중 적 쪽으로)</span><div class="seg" data-set="assist"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
     <div class="srow"><span>마우스 · 터치 감도</span><input type="range" min="0.4" max="2" step="0.1" data-set="sens"></div>
     <div class="srow"><span>시점 상하 반전</span><div class="seg" data-set="invertY"><button data-v="0">끔</button><button data-v="1">켬</button></div></div>
@@ -520,7 +529,7 @@ body.pc .spr.spirit{height:30%}
       <button class="tbtn" id="tUpd" style="font-size:15px;font-weight:400">업데이트 기록</button>
     </div>
     <div id="verWarn"></div>
-    <div class="ver"><span id="verNo">v0.7.3</span> · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
+    <div class="ver"><span id="verNo">v0.8.0</span> · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
   </div>
 
   <div id="end" class="layer">
@@ -544,7 +553,7 @@ body.pc .spr.spirit{height:30%}
 <script>
 'use strict';
 /* ═══════════ 파일 확인 · 오류 표시 ═══════════ */
-const GAME_VERSION='0.7.3';
+const GAME_VERSION='0.8.0';
 const REQUIRED_FILES=['engine.js','effects.js','weapons.js','avatars.js','stages.js','assets.js','action.js'];
 function showError(msg){const b=document.getElementById('errBox');if(!b)return;b.textContent='오류 — '+msg;b.classList.add('on');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('on'),15000)}
 addEventListener('error',e=>{const f=(e.filename||'').split('/').pop();showError((e.message||'알 수 없는 오류')+(f?`\n파일: ${f} ${e.lineno||''}줄`:''))});
@@ -878,7 +887,9 @@ async function showArt(list,cap){if(skipping())return;const a=$('art');
   a.innerHTML='<div class="row">'+list.map(k=>`<img src="img/${k}.webp" alt="">`).join('')+'</div>'+(cap?`<p>${cap}</p>`:'');
   SFX.play('void');a.classList.add('on');$('box').classList.remove('done');
   let mine;const tap=new Promise(r=>{mine=r;advanceResolve=r});await Promise.race([wait(2600),tap]);if(advanceResolve===mine)advanceResolve=null;a.classList.remove('on');await wait(350)}
+function vib(p){try{if(Settings.get().vibe&&navigator.vibrate)navigator.vibrate(p)}catch(e){}}
 async function doFx(f){
+  if(f==='shake'||f==='flash')vib(f==='flash'?[80,40,140]:90);if(f==='beat')vib([60,120,60,120,60]);
   if(f==='shake'){stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');SFX.play('heavy')}
   if(f==='flash'){stage.classList.remove('flash');void stage.offsetWidth;stage.classList.add('flash');stage.classList.add('shake');SFX.play('heavy');setTimeout(()=>stage.classList.remove('flash','shake'),700)}
   if(f==='void'){SFX.play('void');if(skipping())return;const e=$('eye');e.classList.add('on');await wait(1500);e.classList.remove('on');await wait(300)}
@@ -931,7 +942,7 @@ addEventListener('mousemove',e=>{if(performance.now()-Mode.lastTouch>1200&&(e.mo
 addEventListener('keydown',()=>{if(performance.now()-Mode.lastTouch>1200)Mode.auto('pc')},{capture:true});
 
 /* ═══════════ 설정 (Esc) ═══════════ */
-window.Settings=(()=>{const D={sound:1,shake:1,assist:1,sens:1,invertY:0,quality:'high',mode:'auto'};
+window.Settings=(()=>{const D={sound:1,shake:1,vibe:1,assist:1,sens:1,invertY:0,quality:'high',mode:'auto'};
   let v=Object.assign({},D,store.get('as0_settings')||{});let openedAt=0;
   function apply(){SFX.on=!!v.sound;$('bSnd').textContent=SFX.on?'소리 켬':'소리 끔';if(window.AS3D)AS3D.pixelRatio=v.quality==='high'?2:1.25;
     if(v.mode!=='auto')Mode.set(v.mode);else Mode.set(Mode.cur||(matchMedia('(hover:hover) and (pointer:fine)').matches?'pc':'touch'));
@@ -939,7 +950,7 @@ window.Settings=(()=>{const D={sound:1,shake:1,assist:1,sens:1,invertY:0,quality
   function set(k,val){v[k]=(k==='quality'||k==='mode')?val:Number(val);store.set('as0_settings',v);apply()}
   document.querySelectorAll('#setOv .seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{set(seg.dataset.set,b.dataset.v);if(seg.dataset.set==='mode'&&b.dataset.v==='auto')Mode.cur=null,apply()}));
   document.querySelectorAll('#setOv input[data-set]').forEach(el=>el.oninput=()=>set(el.dataset.set,el.value));
-  const api={get:()=>({sens:v.sens,shake:v.shake?1:0,invertY:!!v.invertY,assist:!!v.assist,mode:v.mode}),
+  const api={get:()=>({sens:v.sens,shake:v.shake?1:0,vibe:v.vibe?1:0,invertY:!!v.invertY,assist:!!v.assist,mode:v.mode}),
     isOpen:()=>$('setOv').classList.contains('on'),
     open(){if(api.isOpen())return;openedAt=performance.now();$('setOv').classList.add('on');if(window.Action)Action.pause(true);try{document.exitPointerLock&&document.exitPointerLock()}catch(e){}},
     close(){$('setOv').classList.remove('on');if(window.Action)Action.pause(false)},
@@ -964,7 +975,7 @@ window.Master=(()=>{const D={skipStory:1,noCd:1,freeRes:1,god:0,partner:'A'};let
     sync(){document.querySelectorAll('#masterOv [data-m]').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(o[seg.dataset.m])===b.dataset.v)))}};
   document.querySelectorAll('#masterOv [data-m]').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=seg.dataset.m;o[k]=k==='partner'?b.dataset.v:Number(b.dataset.v);store.set('as0_master',o);api.sync()}));
   // 전투 바로 가기: 그 전투에 맞는 진행 상태(합일·테로르 획득)를 갖추고 시작
-  const NEED={kardo:{},furor:{},fallen:{},teror:{reunited:1},phobia:{reunited:1,teror:1}};
+  const NEED={kardo:{},furor:{},fallen:{},teror:{reunited:1},phobia:{reunited:1,teror:1},nesis:{reunited:1,teror:1}};
   document.querySelectorAll('#masterOv [data-battle]').forEach(b=>b.onclick=async()=>{const id=b.dataset.battle;
     $('masterOv').classList.remove('on');$('title').style.display='none';api.setOn(true);
     G={i:0,partner:o.partner,edenName:'이든',flags:Object.assign({},NEED[id]),losses:0,absorbed:0};

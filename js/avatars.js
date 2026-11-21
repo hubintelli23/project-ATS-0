@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — avatars.js  v0.7.3
+/* 액팅 소울 : 0 — avatars.js  v0.8.0
    아바타(캐릭터) 정의 + 관절 리그 + 동작(애니메이션)
 
    ■ 캐릭터를 바꾸거나 추가하는 법
@@ -13,7 +13,7 @@
        extra   : [관절, 도형, 위치, 회전, 크기, 색이름, {e:발광}] 추가 부품
      나중에 실제 3D 모델(glTF 등)로 바꿀 때는 Avatars.create 가 돌려주는
      객체의 play / update / draw 세 함수만 같은 이름으로 구현하면 된다. */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['avatars.js']='0.7.3';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['avatars.js']='0.8.0';
 
 (function(){
 'use strict';
@@ -33,6 +33,9 @@ const AVATARS=window.AVATARS={
     palette:{skin:C(232,212,206),hair:C(24,20,30),hair2:C(120,60,170),eye:C(140,80,200),top:C(26,22,30),coat:C(78,44,110),sleeve:C(70,40,100),pants:C(22,20,26),boots:C(20,18,24),accent:C(150,90,210)}},
   phobia:{name:'포비아',hair:'none',hood:true,outfit:'wrap',weaponR:'phobia_scythe',twoHand:true,scale:.96,
     palette:{skin:C(232,214,210),hair:C(170,170,180),eye:C(130,110,190),top:C(150,150,160),coat:C(130,130,140),sleeve:C(150,150,160),pants:C(110,70,150),boots:C(50,50,60),accent:C(140,90,200)}},
+  // 네시스 (집행자) — 은발에 푸른 브릿지, 검은 후드 코트
+  nesis:{name:'네시스',hair:'long',hood:true,outfit:'longcoat',weaponR:'nesis_claustrum',scale:.95,
+    palette:{skin:C(240,224,218),hair:C(214,218,228),hair2:C(80,160,215),eye:C(90,170,230),top:C(28,28,34),coat:C(22,22,28),sleeve:C(24,24,30),pants:C(26,26,32),boots:C(18,18,22),accent:C(90,170,230)}},
   fallen:{name:'폴른',hair:'none',hood:true,outfit:'cloak',weaponR:null,scale:.9,hunch:.45,glowEyes:true,
     palette:{skin:C(30,20,30),hair:C(20,14,22),eye:C(255,60,90),top:C(24,16,26),coat:C(20,12,22),sleeve:C(24,16,26),pants:C(18,12,20),boots:C(14,10,16),accent:C(120,40,90)}},
 };

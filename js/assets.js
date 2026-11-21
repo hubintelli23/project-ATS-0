@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — assets.js  v0.7.3
+/* 액팅 소울 : 0 — assets.js  v0.8.0
    이미지 목록. 「자료실」(타이틀 화면)과 스토리·전투 연출이 이 목록을 씁니다.
    새 이미지를 넣을 때: img/<분류>/<id>.webp 로 저장하고 아래 해당 분류에 한 줄 추가하면 자료실에 나타납니다.
      chars   인물 (전신)          img/chars/
@@ -7,7 +7,7 @@
      emblems 감정 문장 · 결정     img/emblems/
      logos   파레스 · 무기 문장   img/logos/
    demo:1 은 제 0막~2막 체험판에 나오는 것(자료실에서 「체험판 등장」 표시). */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['assets.js']='0.7.3';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['assets.js']='0.8.0';
 window.ASSETS={
   labels:{chars:'인물',unitas:'감정의 우니타스',weapons:'무기',emblems:'감정 문장 · 결정',logos:'문장'},
   // 팀 이름·감정 문장. 이름이 정해지면 아래 name 만 바꾸면 됩니다.
