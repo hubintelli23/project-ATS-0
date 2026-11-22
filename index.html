@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 액팅 소울 : 0 — index.html  v0.8.0 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
+<!-- 액팅 소울 : 0 — index.html  v0.9.3 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -171,6 +171,13 @@ body.touch #mini{right:10px;top:calc(56px + env(safe-area-inset-top));width:86px
 body.pc .topbtn{right:20px;top:18px}
 .tb{font-size:12.5px;padding:6px 10px;border:1px solid rgba(201,197,214,.35);background:rgba(15,12,26,.75);border-radius:3px;color:var(--silver);cursor:pointer}
 /* 화면 가운데 알림 · 피해 숫자 */
+#domain{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:1}
+#domain.d-void{background:radial-gradient(ellipse at 50% 55%,rgba(40,0,80,0) 30%,rgba(30,0,60,.55) 75%,rgba(6,0,14,.9));box-shadow:inset 0 0 120px rgba(140,80,255,.35)}
+#domain.d-fuse{background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 35%,rgba(90,40,10,.45) 75%,rgba(10,30,60,.75));box-shadow:inset 0 0 120px rgba(255,140,60,.3)}
+#domain.d-fear{background:radial-gradient(ellipse at 50% 55%,rgba(60,0,30,0) 30%,rgba(70,0,40,.45) 72%,rgba(14,0,10,.85));box-shadow:inset 0 0 110px rgba(230,60,150,.3)}
+#domain.d-sentia{background:radial-gradient(ellipse at 50% 55%,rgba(0,0,0,0) 40%,rgba(10,50,80,.35) 75%,rgba(0,14,26,.6));box-shadow:inset 0 0 90px rgba(120,210,255,.3)}
+#domain.d-sensus{background:radial-gradient(ellipse at 50% 55%,rgba(0,0,0,0) 40%,rgba(90,35,5,.35) 75%,rgba(26,8,0,.6));box-shadow:inset 0 0 90px rgba(255,150,70,.3)}
+#domain.d-gold{background:radial-gradient(ellipse at 50% 55%,rgba(255,220,120,.12),rgba(80,60,10,.35) 70%,rgba(20,14,0,.6));box-shadow:inset 0 0 100px rgba(255,210,100,.35)}
 #fuseBar{position:absolute;left:50%;top:calc(132px + env(safe-area-inset-top));transform:translateX(-50%);width:min(440px,86vw);text-align:center;pointer-events:none;display:none;z-index:6}
 #fuseBar.on{display:block;animation:fuseIn .3s}#fuseBar b{display:block;font-family:var(--serif);font-size:44px;line-height:1;color:#ffb067;text-shadow:0 0 14px rgba(255,120,40,.9),0 0 4px #000}
 #fuseBar .fb{height:6px;margin:6px 0 5px;background:rgba(0,0,0,.55);border:1px solid rgba(255,170,90,.6)}#fuseBar .fb i{display:block;height:100%;background:linear-gradient(90deg,#7cc8ff,#ff9a4a);transition:width .25s linear}
@@ -206,6 +213,7 @@ body.pc .pst{font-size:12px}
 .pst .hp i{background:linear-gradient(90deg,#2f6f63,#58c6a6)}
 .pst .ul i{background:linear-gradient(90deg,#8a6a20,#ffd36a)}
 .pst .sy i{background:linear-gradient(90deg,#4b2b6a,#c06bff)}
+#linkRow{display:flex;align-items:center;gap:3px;margin-top:5px}#linkRow .ln{font-size:11.5px;color:#a49fb5;margin-right:4px;min-width:52px}#linkRow img{width:17px;height:17px;object-fit:contain;opacity:.22;filter:grayscale(1)}#linkRow img.on{opacity:1;filter:none}#linkRow.max .ln{color:#d8c4ff;font-weight:700;text-shadow:0 0 8px rgba(160,110,255,.9)}
 #syncRow.hot .sy i{background:linear-gradient(90deg,#8a2c6a,#ff5dbd)}
 /* 컴퓨터: 스킬 바 (오른쪽 아래) */
 .skills{position:absolute;right:28px;bottom:30px;display:none;gap:12px;align-items:flex-end}
@@ -256,7 +264,7 @@ body.pc #atut.on~#atip{top:330px}
 /* 지도 · 설정 */
 #mapOv,#setOv,#updOv,#masterOv{display:none;z-index:60;align-items:center;justify-content:center;background:rgba(5,4,10,.82);padding:16px}
 #mapOv.on,#setOv.on,#updOv.on,#masterOv.on{display:flex}
-#masterOv{z-index:70}
+#masterOv{z-index:70}#masterOv.inbattle .mjump{display:none}#masterOv .mnote{display:none;font-size:12.5px;color:#a49fb5;margin-top:10px}#masterOv.inbattle .mnote{display:block}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.mgrid .tbtn{font-size:14px;padding:10px 0}
 #mBadge{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;font:700 11px var(--sans);letter-spacing:.12em;color:#ffd36a;border:1px solid rgba(255,211,106,.6);padding:2px 8px;border-radius:2px;background:rgba(30,22,8,.75);display:none;pointer-events:none}
 body.master #mBadge{display:block}
@@ -381,6 +389,7 @@ body.pc .spr.spirit{height:30%}
   <div id="act" class="layer">
     <canvas id="gl"></canvas>
     <div id="lookZone"></div>
+    <div id="domain"></div>
     <div id="vfx"></div>
     <div id="bossCard"><div class="bc"><img class="wep" id="bcWep" alt=""><img class="por" id="bcPor" alt=""><div><img class="em" id="bcEm" alt=""><h2 id="bcName"></h2><p id="bcSub"></p></div></div></div>
     <div class="ab">
@@ -404,6 +413,7 @@ body.pc .spr.spirit{height:30%}
         <div class="row"><span>공허 (고리)</span><span id="pVdN"></span></div>
         <div class="row"><span>공명 · 궁극기</span><span id="pUltN"></span></div><div class="bar ul"><i id="pUlt"></i></div>
         <div id="syncRow"><div class="row"><span>동기화율</span><span id="pSyN"></span></div><div class="bar sy"><i id="pSy"></i></div></div>
+        <div id="linkRow"></div>
         <div class="chips" id="pChips"></div>
       </div>
     </div>
@@ -440,12 +450,15 @@ body.pc .spr.spirit{height:30%}
 
   <!-- 마스터 모드 -->
   <div id="masterOv" class="layer"><div class="setbox">
-    <div class="maphead"><b>마스터 모드</b><span>제한 없이 확인·연습하는 모드</span><button class="tb" id="mClose">닫기</button></div>
+    <div class="maphead"><b>마스터 모드</b><span>F2 또는 ` 키로 열고 닫기</span><button class="tb" id="mClose">닫기</button></div>
+    <div class="srow"><span>마스터 모드</span><div class="seg" id="mOnSeg"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
     <div class="srow"><span>스토리 자동 넘김 (대사·연출 건너뜀)</span><div class="seg" data-m="skipStory"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
     <div class="srow"><span>쿨타임 없음 (스킬·회피·대쉬)</span><div class="seg" data-m="noCd"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
     <div class="srow"><span>공허·공명 무제한 (Q·R 항상 사용)</span><div class="seg" data-m="freeRes"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
     <div class="srow"><span>무적 (체력이 줄지 않음)</span><div class="seg" data-m="god"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
     <div class="srow"><span>시너지아</span><div class="seg" data-m="partner"><button data-v="A">센티아</button><button data-v="B">센수스</button></div></div>
+    <div class="mnote">전투 바로 가기와 「마스터 모드로 처음부터」는 타이틀 화면에서 열 수 있습니다.</div>
+    <div class="mjump">
     <h4 style="font-size:13px;color:#ffc27a;margin:14px 0 8px">전투 바로 가기</h4>
     <div class="mgrid">
       <button class="tbtn" data-battle="kardo">카르도 (튜토리얼)</button>
@@ -456,6 +469,7 @@ body.pc .spr.spirit{height:30%}
       <button class="tbtn" data-battle="nesis" style="border-color:rgba(255,160,80,.7)">네시스 · 흡융 기믹 (시험)</button>
     </div>
     <div class="sbtns"><button class="tbtn" id="mStory">마스터 모드로 처음부터</button></div>
+    </div>
   </div></div>
 
   <!-- 자료실 (assets.js 의 이미지 목록) -->
@@ -524,12 +538,11 @@ body.pc .spr.spirit{height:30%}
     <div class="menu">
       <button class="tbtn" id="tNew">처음부터</button>
       <button class="tbtn" id="tCont">이어하기</button>
-      <button class="tbtn" id="tMaster" style="font-size:15px;font-weight:400">마스터 모드</button>
       <button class="tbtn" id="tGal" style="font-size:15px;font-weight:400">자료실</button>
       <button class="tbtn" id="tUpd" style="font-size:15px;font-weight:400">업데이트 기록</button>
     </div>
     <div id="verWarn"></div>
-    <div class="ver"><span id="verNo">v0.8.0</span> · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
+    <div class="ver"><span id="verNo">v0.9.3</span> · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
   </div>
 
   <div id="end" class="layer">
@@ -553,7 +566,7 @@ body.pc .spr.spirit{height:30%}
 <script>
 'use strict';
 /* ═══════════ 파일 확인 · 오류 표시 ═══════════ */
-const GAME_VERSION='0.8.0';
+const GAME_VERSION='0.9.3';
 const REQUIRED_FILES=['engine.js','effects.js','weapons.js','avatars.js','stages.js','assets.js','action.js'];
 function showError(msg){const b=document.getElementById('errBox');if(!b)return;b.textContent='오류 — '+msg;b.classList.add('on');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('on'),15000)}
 addEventListener('error',e=>{const f=(e.filename||'').split('/').pop();showError((e.message||'알 수 없는 오류')+(f?`\n파일: ${f} ${e.lineno||''}줄`:''))});
@@ -960,7 +973,7 @@ window.Settings=(()=>{const D={sound:1,shake:1,vibe:1,assist:1,sens:1,invertY:0,
 Settings.apply();
 $('bSet').onclick=e=>{e.stopPropagation();Settings.open()};
 $('mapClose').onclick=()=>Action.closeMap();
-addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();if(Gallery.isOpen()){Gallery.close();return}if($('updOv').classList.contains('on')){$('updOv').classList.remove('on');return}if($('mapOv').classList.contains('on')){Action.closeMap();return}Settings.toggle()}});
+addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();if(Master.isOpen&&Master.isOpen()){Master.close();return}if(Gallery.isOpen()){Gallery.close();return}if($('updOv').classList.contains('on')){$('updOv').classList.remove('on');return}if($('mapOv').classList.contains('on')){Action.closeMap();return}Settings.toggle()}});
 
 // 전투를 시작할 수 없을 때: 이유를 보여주고 스토리를 계속 진행할 수 있게 한다
 function battleFail(msg){showError(msg);return new Promise(res=>{const r=$('result');r.innerHTML=`<h2>전투를 열 수 없다</h2><p>${msg}</p><button class="tbtn" id="retry" style="width:220px">전투 건너뛰고 계속</button>`;r.classList.add('on');$('retry').onclick=()=>{r.classList.remove('on');res()}})}
@@ -972,10 +985,11 @@ window.Master=(()=>{const D={skipStory:1,noCd:1,freeRes:1,god:0,partner:'A'};let
     get opts(){return{skipStory:!!o.skipStory,noCd:!!o.noCd,freeRes:!!o.freeRes,god:!!o.god}},
     skip(){return api.on&&!!o.skipStory},
     setOn(v){api.on=v;document.body.classList.toggle('master',v)},
-    sync(){document.querySelectorAll('#masterOv [data-m]').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(o[seg.dataset.m])===b.dataset.v)))}};
+    sync(){document.querySelectorAll('#mOnSeg button').forEach(b=>b.classList.toggle('on',String(api.on?1:0)===b.dataset.v));document.querySelectorAll('#masterOv [data-m]').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(o[seg.dataset.m])===b.dataset.v)))}};
   document.querySelectorAll('#masterOv [data-m]').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=seg.dataset.m;o[k]=k==='partner'?b.dataset.v:Number(b.dataset.v);store.set('as0_master',o);api.sync()}));
+  document.querySelectorAll('#mOnSeg button').forEach(b=>b.onclick=()=>{api.setOn(b.dataset.v==='1');api.sync()});
   // 전투 바로 가기: 그 전투에 맞는 진행 상태(합일·테로르 획득)를 갖추고 시작
-  const NEED={kardo:{},furor:{},fallen:{},teror:{reunited:1},phobia:{reunited:1,teror:1},nesis:{reunited:1,teror:1}};
+  const NEED={kardo:{},furor:{},fallen:{},teror:{reunited:1},phobia:{reunited:1,teror:1},nesis:{reunited:1,teror:1,links:[0,1,2,3,4,5]}};
   document.querySelectorAll('#masterOv [data-battle]').forEach(b=>b.onclick=async()=>{const id=b.dataset.battle;
     $('masterOv').classList.remove('on');$('title').style.display='none';api.setOn(true);
     G={i:0,partner:o.partner,edenName:'이든',flags:Object.assign({},NEED[id]),losses:0,absorbed:0};
@@ -985,8 +999,12 @@ window.Master=(()=>{const D={skipStory:1,noCd:1,freeRes:1,god:0,partner:'A'};let
     else{try{await Action.run(id,{partner:G.partner,flags:G.flags,name:G.edenName,onLose:()=>G.losses++})}catch(err){await battleFail('전투를 시작하지 못했습니다: '+(err&&err.message||err))}}
     $('hud').style.display='none';$('title').style.display='flex';$('masterOv').classList.add('on')});
   $('mStory').onclick=()=>{$('masterOv').classList.remove('on');api.setOn(true);store.del('as0_save');G={i:0,partner:o.partner,edenName:'대행자',flags:{},losses:0,absorbed:0};startFrom(0)};
-  $('mClose').onclick=()=>$('masterOv').classList.remove('on');
-  $('tMaster').onclick=()=>{api.sync();$('masterOv').classList.add('on')};
+  $('mClose').onclick=()=>api.close();
+  // F2 또는 ` 키로 어디서나 열고 닫는다 (타이틀·스토리·전투). 설정 화면에는 나타나지 않는다.
+  api.isOpen=()=>$('masterOv').classList.contains('on');
+  api.open=()=>{api.sync();const inBattle=!!(window.Action&&Action.running),onTitle=getComputedStyle($('title')).display!=='none';$('masterOv').classList.toggle('inbattle',inBattle||!onTitle);$('masterOv').classList.add('on');if(inBattle){Action.pause(true);try{document.exitPointerLock&&document.exitPointerLock()}catch(e){}}};
+  api.close=()=>{$('masterOv').classList.remove('on');if(window.Action&&Action.running)Action.pause(false)};
+  addEventListener('keydown',e=>{if(e.key==='F2'||e.code==='Backquote'){e.preventDefault();e.stopPropagation();api.isOpen()?api.close():api.open()}},true);
   return api})();
 
 /* ═══════════ 업데이트 기록 ═══════════ */

@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — stages.js  v0.8.0
+/* 액팅 소울 : 0 — stages.js  v0.9.3
    배경(전투 무대): 바닥, 소품, 먼 배경, 조명, 안개, 떠다니는 입자
 
    ■ 배경을 바꾸거나 추가하는 법
@@ -8,7 +8,7 @@
        amb     : 떠다니는 입자 { col 색, up: true=위로 / false=아래로 }
        props(r, add) : 소품 배치. add(도형, x, z, {y, rot:[x,y,z], s:[x,y,z], c, e}) 로 놓는다.
        far(r, add)   : 경기장 밖 먼 배경 (안개에 묻히는 실루엣) */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['stages.js']='0.8.0';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['stages.js']='0.9.3';
 
 (function(){
 'use strict';
@@ -51,6 +51,15 @@ const STAGES=window.STAGES={
     far(r,add){ring(14,30,(x,z,a)=>{const h=3+r()*4;add('box',x,z,{s:[5,h,4],c:C(30,26,40),rot:[0,-a,0]});add('cone4',x,z,{y:h,s:[6.5,2.6,5],c:C(28,24,38),rot:[0,-a+.78,0]})})}},
 };
 
+// 영역 색 (공허 · 흡융 · 공명)
+const DOMAINS={
+  void:{fog:[.03,0,.07],lightC:[.72,.6,1.05],rim:[.75,.4,1],gl:[.55,.25,1],amb:[.75,.5,1]},
+  fuse:{fog:[.13,.07,.05],lightC:[1.05,.86,.8],rim:[1,.6,.3],gl:[.45,.75,1],amb:[1,.6,.3]},
+  sentia:{fog:[.03,.07,.1],lightC:[.85,.98,1.1],rim:[.55,.9,1],gl:[.5,.85,1],amb:[.6,.9,1]},
+  sensus:{fog:[.12,.05,.02],lightC:[1.1,.9,.8],rim:[1,.6,.3],gl:[1,.55,.25],amb:[1,.6,.3]},
+  fear:{fog:[.09,0,.06],lightC:[.95,.7,.88],rim:[.95,.25,.6],gl:[.8,.2,.6],amb:[.95,.3,.6]},
+  gold:{fog:[.12,.09,.02],lightC:[1.1,1,.8],rim:[1,.85,.4],gl:[1,.8,.3],amb:[1,.85,.4]}};
+let domK=0,domC=null;
 function rng(seed){let s=seed;return()=>{s=(s*16807)%2147483647;return(s-1)/2147483646}}
 let cur=null,props=[],far=[],amb=[];
 function newAmb(init){const a=Math.random()*Math.PI*2,d=Math.random()*ARENA*1.2;return{x:Math.cos(a)*d,z:Math.sin(a)*d,y:init?Math.random()*6:(cur.amb.up?0:6),v:(cur.amb.up?1:-1)*(.3+Math.random()*.6),s:.05+Math.random()*.08,w:Math.random()*6}}
@@ -62,12 +71,16 @@ window.Stages={ARENA,
     E.env({fog:cur.fog,light:cur.light,lightC:cur.lightC,rim:cur.rim,gl:cur.gl,arena:ARENA,fogN:9,fogF:34});
     return cur},
   sky(){return cur?cur.sky:'black'},
+  // 배경 변화 · 영역 전개: kind 의 색으로 k(0~1)만큼 물든다 (action.js 가 매 프레임 부른다)
+  domain(kind,k){if(!cur)return;const D=DOMAINS[kind];const mix=(a,b)=>a.map((v,i)=>v+(b[i]-v)*k);
+    if(!D||k<=0){E.env({fog:cur.fog,lightC:cur.lightC,rim:cur.rim,gl:cur.gl});domK=0;return}
+    E.env({fog:mix(cur.fog,D.fog),lightC:mix(cur.lightC,D.lightC),rim:mix(cur.rim,D.rim),gl:mix(cur.gl,D.gl)});domK=k;domC=D.amb},
   update(dt){for(const a of amb){a.y+=a.v*dt*.6;a.w+=dt;if(a.y>7||a.y<0)Object.assign(a,newAmb(false))}},
   // 바닥과 소품 (불투명) — 캐릭터보다 먼저 그린다
   drawSolid(){for(const p of far)E.mesh(p.g,p.M,{c:p.c,e:p.e});
     E.mesh(E.geo('disc'),M.trs(0,0,0,0,0,0,ARENA*1.45,1,ARENA*1.45),{c:cur.ground,ground:1});
     for(const p of props)E.mesh(p.g,p.M,{c:p.c,e:p.e,outline:.03})},
   // 떠다니는 입자 (가산) — 마지막에 그린다
-  drawAmbient(){const c=cur.amb.col;for(const a of amb){const f=.5+.5*Math.sin(a.w*3);E.quad(E.geo('ctr'),M.trs(a.x,a.y,a.z,0,E.yawTo(a.x,a.z),0,a.s*3,a.s*3,a.s*3),E.tex.glow,[c[0],c[1],c[2],.3+.4*f],{add:1})}}
+  drawAmbient(){const b=cur.amb.col,c=domC&&domK>0?b.map((v,i)=>v+(domC[i]-v)*domK):b;for(const a of amb){const f=.5+.5*Math.sin(a.w*3);E.quad(E.geo('ctr'),M.trs(a.x,a.y,a.z,0,E.yawTo(a.x,a.z),0,a.s*3,a.s*3,a.s*3),E.tex.glow,[c[0],c[1],c[2],.3+.4*f],{add:1})}}
 };
 })();

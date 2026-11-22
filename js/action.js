@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — action.js  v0.8.0
+/* 액팅 소울 : 0 — action.js  v0.9.3
    3D 실시간 전투의 규칙: 입력(컴퓨터·휴대폰), 3인칭 백뷰 카메라, 보스 패턴, 판정,
    튜토리얼, 아이템, 지도, HUD.  그리는 일은 다른 파일이 맡는다.
      engine.js  : 3D 엔진       avatars.js : 캐릭터
@@ -17,7 +17,7 @@
      Space       점프 · Space+좌클릭 점프 공격 · Space+Ctrl+좌클릭 점프 강공격
      F           상호작용 (아이템 줍기 · 단죄)
      M           지도          Esc  설정 */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.8.0';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.9.3';
 
 (function(){
 'use strict';
@@ -87,6 +87,18 @@ DEFS.nesis={name:'네시스',sub:'집행자 · 흡융',tex:'nesis',H:1.9,hp:800,
         orb:{mo:'cast',n:'흡융탄',wind:1.0,shape:'circle',r:2.0,dmg:12,rec:.5,atPlayer:1},
         lance:{mo:'stab',n:'역류 관통',wind:.9,shape:'line',len:8,w:1.4,dmg:15,rec:.8,heavy:1}},
   pick(e,d){if(S.fuse)return e.cool<=0?'orb':null;const r=Math.random();if(d>4.2)return r<.55?'orb':'lance';return r<.5?'cut':r<.75?'lance':'orb'}};
+/* ── 링크 시스템 ────────────────────────────────────────────────
+   이든이 연결한 감정의 고리. 0번(공허 & 흡융)은 처음부터 연결되어 있고, 사념을 계승할 때마다 하나씩 이어진다.
+   여섯 고리가 모두 이어지면(링크 최대) 궁극기 「공허 개방」이 「아르케 해방」으로 바뀐다.
+   시즌 1 체험판에서 링크 최대는 네시스 전투(후반부)에서만 열린다. */
+const LINKS=[{n:0,name:'공허 & 흡융',em:'void_crystal'},{n:1,name:'분노',em:'anger_crystal'},{n:2,name:'두려움',em:'fear_crystal'},
+  {n:3,name:'슬픔',em:'sorrow_crystal'},{n:4,name:'기쁨',em:'joy_crystal'},{n:5,name:'교만',em:'pride_crystal'}];
+function linkLit(){const f=ctx.flags||{};if(Array.isArray(f.links))return f.links;const l=[0];if(f.teror)l.push(2);return l}
+const linkMax=()=>linkLit().length>=LINKS.length;
+/* ── 아르케 해방 (링크 최대에서 공허 개방) ───────────────────────
+   무기가 아르케로 바뀌고 등 뒤에 이든의 헤일로(보라색 5개 교차 고리 + 검은 블랙홀)가 생긴다.
+   공허 영역 전개: 배경이 공허로 물들고, 영역 안의 적은 느려지며 감정 강화가 쌓이지 않는다. */
+const ARCHE={dur:15,dmg:1.5,range:.5,slow:.75};
 const ITEMS={heal:{name:'치유의 정수',col:[.4,1,.6]},void:{name:'사념 조각',col:[.7,.5,1]}};
 
 /* ═══════════════ 입력 ═══════════════ */
@@ -142,17 +154,17 @@ const sfx=t=>window.SFX&&SFX.play(t);
 function start(id){curId=id;DEF=DEFS[id];const st=Stages.build(DEF.stage);FX.clear();
   $('bg').className='layer bg-'+st.sky;
   P={x:0,y:0,vy:0,z:5,hp:100,max:100,void:id==='kardo'?0:20,sync:0,ult:id==='kardo'?0:30,weapon:'syn',state:'idle',t:0,combo:0,buf:0,iframe:0,dodgeCd:0,dashCd:0,parryT:0,
-     fear:0,immune:false,shield:0,crit:0,skillCd:0,bind:0,flash:0,face:Math.PI,hitDone:false,lastDodge:-9,moved:0,jumps:0,rig:Avatars.create('eden')};
+     arche:0,resonT:0,cdA:0,cdB:0,cdX:0,sister:ctx.partner==='A'?'sentia':'sensus',fear:0,immune:false,shield:0,crit:0,skillCd:0,bind:0,flash:0,face:Math.PI,hitDone:false,lastDodge:-9,moved:0,jumps:0,rig:Avatars.create('eden')};
   edenWeapons();
   ENS=[];const n=DEF.count||1;
   for(let i=0;i<n;i++){const a=n>1?(i-(n-1)/2)*.9:0;ENS.push({x:Math.sin(a)*5,z:-3-Math.cos(a)*2*(n>1?1:0),hp:DEF.hp,max:DEF.hp,state:'idle',t:0,cool:1.2+i*.6,stun:0,
     stacks:0,stackT:0,barrier:id==='phobia'?1:0,brokenT:0,flash:0,dir:[0,1],att:null,alpha:1,dead:false,flags:{},fed:0,yaw:0,moving:false,rig:Avatars.create(DEF.tex)})}
-  S.tele=[];S.items=[];S.fuse=null;S.deathMsg='';TS=1;hitstop=0;slowT=0;cine=null;IN.q={};IN.atkDown=false;
+  S.tele=[];S.items=[];S.fuse=null;S.deathMsg='';S.archeTip=0;DOM.k=0;DOM.kind='';DOM.burst=0;TS=1;hitstop=0;slowT=0;cine=null;IN.q={};IN.atkDown=false;
   tut=DEF.tutorial?{step:0,hits:0,heavy:0,parried:0,dodged:0,plunged:0,voided:0,ulted:0,shown:-1}:null;
   CAM.yaw=0;CAM.pitch=.24;CAM.x=0;CAM.y=3;CAM.z=10;CAM.tx=0;CAM.ty=1.3;CAM.tz=5;CAM.lookT=9;
   $('aName').textContent=DEF.name;$('aSub').textContent=DEF.sub;$('aJudgeMark').style.display=(DEF.noJudge||DEF.tutorial)?'none':'block';
   const hasTer=ctx.flags.teror&&!DEF.tutorial;
-  document.querySelectorAll('[data-k="swap"]').forEach(b=>b.style.display=hasTer?'':'none');
+  document.querySelectorAll('[data-k="swap"]').forEach(b=>b.style.display=ownedWeapons().length>1?'':'none');
   $('syncRow').style.display=hasTer?'':'none';
   $('miniName').textContent={forge:'대장간 뒤뜰',wall:'경계의 성벽',forest:'통곡의 숲',shrine:'신성한 사당'}[DEF.stage]||'';
   $('act').classList.add('on');$('result').classList.remove('on');$('atut').classList.remove('on');$('hud').style.display='none';
@@ -208,7 +220,7 @@ const grounded=()=>P.y<=.001;
 function camFwd(){return[-Math.sin(CAM.yaw),-Math.cos(CAM.yaw)]}
 // 공격 방향: 가까운 적(6m) → 이동 방향 → 카메라 앞
 function aimFace(){const e=nearestCore(6)||nearest(6);if(e){P.face=Math.atan2(e.x-P.x,e.z-P.z);return e}if(Math.hypot(P.mx,P.mz)>.2)P.face=Math.atan2(P.mx,P.mz);else{const f=camFwd();P.face=Math.atan2(f[0],f[1])}return null}
-function edenWeapons(){const r=P.rig;if(P.weapon==='ter'){r.weaponR='ego_teror';r.weaponL=null}else if(ctx.flags.reunited){r.weaponR='sentia';r.weaponL='sensus'}else{r.weaponR=ctx.partner==='A'?'sentia':'sensus';r.weaponL=null}}
+function edenWeapons(){const r=P.rig;if(P.arche>0){r.weaponR='arche';r.weaponL=null;return}if(P.weapon==='ter'){r.weaponR='ego_teror';r.weaponL=null}else{r.weaponR=P.sister;r.weaponL=null}}
 const ENEMY_TRAIL={nesis:[.55,.8,1],kardo:[.9,.8,.6],furor:[1,.45,.2],fallen:[.8,.3,.5],teror:[.7,.3,1],phobia:[.75,.55,1]};
 function gainUlt(v){P.ult=Math.min(100,P.ult+v)}
 
@@ -232,10 +244,10 @@ function attackHit(){
   FX.spawn('slash',{x:P.x,y:mo==='V'?1.15:1.05,z:P.z,yaw:P.face,roll:mo==='V'?Math.PI/2:(mo==='H2'?.22:-.22),dir:mo==='H2'?-1:1,r:(heavy?3.4:W.range*.95),col,life:heavy?.32:.24});
   if(P.rig.weaponL&&mo!=='V')FX.spawn('slash',{x:P.x,y:.95,z:P.z,yaw:P.face,roll:mo==='H2'?-.35:.35,dir:mo==='H2'?1:-1,r:W.range*.85,col:Weapons.trail(P.rig.weaponL),life:.2});
   if(heavy){FX.spawn('ring',{x:P.x+fx0*1.6,z:P.z+fz0*1.6,size:1.4,grow:1.4,life:.4,col});shake(.18)}
-  const range=heavy?3.3:W.range,cosA=Math.cos((heavy?75:65)*Math.PI/180);let any=false;
+  const range=(heavy?3.3:W.range)+(P.arche>0?ARCHE.range:0),cosA=Math.cos((heavy?75:65)*Math.PI/180);let any=false;
   for(const e of alive()){const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz);if(d>range+.4)continue;
     if(d>1&&(dx*fx0+dz*fz0)/d<cosA)continue;
-    let dmg=heavy?W.heavy:W.dmg[P.combo];if(P.weapon==='ter'&&P.sync>=80)dmg=Math.round(dmg*1.4);
+    let dmg=heavy?W.heavy:W.dmg[P.combo];if(P.weapon==='ter'&&P.sync>=80)dmg=Math.round(dmg*1.4);if(P.arche>0)dmg=Math.round(dmg*ARCHE.dmg);
     hitEnemy(e,dmg,{weapon:P.weapon,stagger:heavy});any=true}
   if(fuseOn())for(const c of S.fuse.cores){if(c.dead)continue;const dx=c.x-P.x,dz=c.z-P.z,d=Math.hypot(dx,dz);if(d>range+.5)continue;if(d>1&&(dx*fx0+dz*fz0)/d<cosA)continue;hitCore(c,heavy?W.heavy:W.dmg[P.combo]);any=true}
   if(any){if(P.weapon==='ter'){P.sync=Math.min(100,P.sync+(heavy?18:12));P.void=Math.min(100,P.void+4);gainUlt(heavy?8:3);if(P.sync>=100)erosion()}
@@ -300,27 +312,72 @@ async function doVoid(){if(P.void<40||P.state==='dodge'||P.state==='ult')return;
   if(curId==='phobia')callout('성흔 장벽 소거','vio');if(curId==='teror')callout('공포 수확 소거','vio');
   hud()}
 function vfx(){$('vfx').classList.remove('on');void $('vfx').offsetWidth;$('vfx').classList.add('on')}
-function doSkill(){if(P.skillCd>0||!canAct()||!grounded())return;P.skillCd=10;const e=nearest(7);if(e)P.face=Math.atan2(e.x-P.x,e.z-P.z);
-  if(ctx.flags.reunited){if(e){const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz)||1;if(d>1.5){P.x+=dx/d*(d-1.3);P.z+=dz/d*(d-1.3)}
-      FX.spawn('slash',{x:P.x,y:1.05,z:P.z,yaw:P.face,roll:-.3,dir:1,r:3,col:[1,.7,.35],life:.32});FX.spawn('slash',{x:P.x,y:1.1,z:P.z,yaw:P.face,roll:.35,dir:-1,r:3.2,col:[.55,.85,1],life:.32});
-      if(d<5)hitEnemy(e,40,{})}P.shield+=15;callout('공명 베기','vio');sfx('heavy')}
-  else if(ctx.partner==='A'){P.shield+=20;P.crit=3;callout('센티아 · 정교한 설계','vio');sfx('parry');FX.spawn('vring',{x:P.x,y:1.1,z:P.z,size:1.1,life:.5,col:[.6,.9,1]})}
-  else{FX.spawn('ring',{x:P.x,z:P.z,size:1.4,grow:1.6,life:.4,col:[1,.6,.3]});FX.spawn('slash',{x:P.x,y:1,z:P.z,yaw:P.face,roll:0,dir:1,r:3.2,col:[1,.6,.3],life:.3});FX.spawn('slash',{x:P.x,y:1,z:P.z,yaw:P.face+Math.PI,roll:0,dir:1,r:3.2,col:[1,.6,.3],life:.3});
-    for(const en of alive())if(Math.hypot(en.x-P.x,en.z-P.z)<3.4)hitEnemy(en,36,{});callout('센수스 · 감정 증폭','vio');sfx('heavy')}
+/* ── E 스킬: 들고 있는 무기에 따라 바뀐다 ─────────────────────────────
+   이든은 무기를 하나씩 든다. Tab 으로 센티아 → 센수스 → 테로르 순서로 바꾸고(가진 것만), E 는 지금 든 무기의 스킬.
+   센티아                    「센티아 · 정교한 설계」
+   센수스                    「센수스 · 감정 증폭」
+   에고웨폰 (흡수한 사념)    「공명 베기」 변형 — 사념의 힘을 쓴다. 체험판: 테로르 → 「공명 베기 · 공포」
+   아르케 (해방 중)          아르케 고유 스킬 「아르케 · 기원의 일섬」
+   무기마다 재사용 대기시간이 따로 돈다. */
+const SKILL={
+  sentia:{name:'센티아 · 정교한 설계',btn:'정교한 설계',cd:8},
+  sensus:{name:'센수스 · 감정 증폭',btn:'감정 증폭',cd:8},
+  arche:{name:'아르케 · 기원의 일섬',btn:'기원의 일섬',cd:8},
+  // 공명 베기 변형 — 에고웨폰(흡수한 사념)마다 하나씩. 새 에고웨폰이 생기면 여기에 추가
+  reson:{ter:{name:'공명 베기 · 공포',btn:'공명 · 공포',cd:10}}};
+const WNAME={sentia:'센티아',sensus:'센수스',ter:'테로르'};
+// 지금 가진 무기 목록 (전환 순서)
+function ownedWeapons(){const l=ctx.flags.reunited?['sentia','sensus']:[ctx.partner==='A'?'sentia':'sensus'];if(ctx.flags.teror&&!DEF.tutorial)l.push('ter');return l}
+const heldWeapon=()=>P.weapon==='ter'?'ter':P.sister;
+const skillMode=()=>P.arche>0?'arche':P.weapon==='ter'?'reson':P.sister;
+const skillCdKey=m=>m==='arche'?'cdX':m==='reson'?'skillCd':m==='sentia'?'cdA':'cdB';
+function sentiaSkill(){P.shield+=20;P.crit=3;callout(SKILL.sentia.name,'vio');sfx('parry');FX.spawn('vring',{x:P.x,y:1.1,z:P.z,size:1.1,life:.5,col:[.6,.9,1]});burst('sentia',.6)}
+function sensusSkill(){FX.spawn('ring',{x:P.x,z:P.z,size:1.4,grow:1.6,life:.4,col:[1,.6,.3]});FX.spawn('slash',{x:P.x,y:1,z:P.z,yaw:P.face,roll:0,dir:1,r:3.2,col:[1,.6,.3],life:.3});FX.spawn('slash',{x:P.x,y:1,z:P.z,yaw:P.face+Math.PI,roll:0,dir:1,r:3.2,col:[1,.6,.3],life:.3});
+  for(const en of alive())if(Math.hypot(en.x-P.x,en.z-P.z)<3.4)hitEnemy(en,36,{});
   if(fuseOn())for(const c of S.fuse.cores)if(!c.dead&&Math.hypot(c.x-P.x,c.z-P.z)<3.6)hitCore(c,30);
+  callout(SKILL.sensus.name,'vio');sfx('heavy');burst('sensus',.6)}
+// 공명 베기 · 공포 (에고웨폰 테로르): 앞쪽 8m 일직선 관통 베기 34, 맞은 적 1.2초 경직, 동기화율 +20. 공명 헤일로(황금 7개 재구성 고리)
+function resonSlash(){const R=SKILL.reson.ter;P.resonT=1.4;burst('fear',.9);callout(R.name,'vio');sfx('heavy');
+  const fx=Math.sin(P.face),fz=Math.cos(P.face),L=8,W=1.6;
+  for(let i=1;i<=L;i+=1.4)FX.spawn('slash',{x:P.x+fx*i,y:1,z:P.z+fz*i,yaw:P.face,roll:Math.PI/2,dir:1,r:1.4,col:[.85,.25,.6],life:.3});
+  FX.spawn('beam',{x:P.x+fx*L*.5,z:P.z+fz*L*.5,col:[.8,.2,.6],life:.4});
+  for(const en of alive()){const dx=en.x-P.x,dz=en.z-P.z,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-.5&&along<L&&side<W){hitEnemy(en,34,{stagger:true,weapon:'ter'});if(!en.lock&&!en.dead&&en.state!=='stun'){en.state='stun';en.stun=Math.max(en.stun||0,1.2);S.tele=S.tele.filter(t=>t.e!==en);en.att=null}}}
+  if(fuseOn())for(const c of S.fuse.cores){if(c.dead)continue;const dx=c.x-P.x,dz=c.z-P.z,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-.5&&along<L&&side<W+.4)hitCore(c,34)}
+  P.sync=Math.min(100,P.sync+20)}
+// 아르케 · 기원의 일섬: 앞으로 최대 6.5m 꿰뚫고 지나가며(무적) 길 위의 모든 것을 벤다 48. 맞은 적의 감정 강화를 지우고, 길 위의 흡융 핵은 즉시 소거
+function archeSkill(){const fx=Math.sin(P.face),fz=Math.cos(P.face),L=6.5,W=1.5,sx=P.x,sz=P.z;
+  let len=L;const lim=ARENA-.6;for(let t=0;t<=L;t+=.25){const x=sx+fx*t,z=sz+fz*t;if(Math.hypot(x,z)>lim){len=t;break}}
+  P.x=sx+fx*len;P.z=sz+fz*len;P.iframe=Math.max(P.iframe,.5);
+  for(let t=0;t<=len;t+=.7)FX.spawn('glow',{x:sx+fx*t,y:1.1,z:sz+fz*t,size:1.1,col:[.8,.65,1],life:.4});
+  FX.spawn('beam',{x:P.x,z:P.z,col:[.85,.75,1],life:.5});FX.spawn('vring',{x:P.x,y:1.2,z:P.z,size:1.8,life:.45,col:[.9,.8,1]});
+  FX.spawn('slash',{x:P.x,y:1.1,z:P.z,yaw:P.face+Math.PI,roll:0,dir:1,r:3.6,col:[.85,.75,1],life:.35});
+  for(const en of alive()){const dx=en.x-sx,dz=en.z-sz,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-.6&&along<len+1&&side<W){hitEnemy(en,48,{stagger:true,weapon:'syn'});en.stacks=0;if(en.flags)en.flags.eye=1;en.harvest=0}}
+  if(fuseOn())for(const c of S.fuse.cores){if(c.dead)continue;const dx=c.x-sx,dz=c.z-sz,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-.6&&along<len+1&&side<W+.5){coreBreak(c,true);if(!fuseOn())break}}
+  callout(SKILL.arche.name,'vio');sfx('heavy');shake(.3);burst('void',.8)}
+function doSkill(){if(!canAct()||!grounded())return;const mode=skillMode(),key=skillCdKey(mode);if(P[key]>0)return;
+  P[key]=mode==='reson'?SKILL.reson.ter.cd:SKILL[mode].cd;
+  const e=nearest(7);if(e)P.face=Math.atan2(e.x-P.x,e.z-P.z);
+  if(mode==='arche')archeSkill();else if(mode==='reson')resonSlash();else if(mode==='sentia')sentiaSkill();else sensusSkill();
   P.state='atk';P.t=0;P.atkDur=.42;P.hitDone=true;P.combo=0;P.lunge=0;P.heavyAtk=false;
   hud()}
 // 궁극기(R): 공명 게이지 100 소모
 function doUlt(){if(P.ult<100||!canAct()||!grounded())return;P.ult=0;P.state='ult';P.t=0;P.ultHit=false;aimFace();
-  if(tut&&tut.step===7)tut.ulted=1;callout('궁극기 · 공허 개방','vio');sfx('judge');slow(.9,.35);vfx();
+  if(tut&&tut.step===7)tut.ulted=1;sfx('judge');slow(.9,.35);vfx();
+  if(linkMax()){P.arche=ARCHE.dur;P.weapon='syn';edenWeapons();callout('공허 개방 · 아르케 해방','vio');burst('void',1.6);
+    FX.spawn('beam',{x:P.x,z:P.z,col:[.75,.6,1],life:1});
+    if(!S.archeTip){S.archeTip=1;tip(ctx.partner==='A'?'“링크가 전부 이어졌어. 아르케… 이게 네 진짜 검이야.”':'“주인, 고리가 다 이어졌어! 아르케야!”')}}
+  else{callout('궁극기 · 공허 개방','vio');burst('void',1.1)}
   FX.spawn('vring',{x:P.x,y:1.2,z:P.z,size:1.4,life:.6,col:[.6,.45,1]});hud()}
 function ultHit(){P.ultHit=true;FX.spawn('ring',{x:P.x,z:P.z,size:1.5,grow:4.5,life:.8,col:[.6,.45,1]});FX.spawn('beam',{x:P.x,z:P.z,col:[.55,.4,1],life:.8});
   FX.spawn('spark',{x:P.x,y:.5,z:P.z,n:24,col:[.75,.6,1],speed:8});shake(.45);sfx('heavy');
   coresInRadius(FUSE.ultR,true);
   for(const e of alive()){if(e.lock||Math.hypot(e.x-P.x,e.z-P.z)>7.5)continue;e.stacks=0;S.tele=S.tele.filter(t=>t.e!==e);e.att=null;e.state='stun';e.stun=2.5;
     if(curId==='phobia'){e.barrier=0;e.brokenT=6}hitEnemy(e,60,{pierce:1,noCrit:1})}}
-function doSwap(){if(!ctx.flags.teror||DEF.tutorial||!canAct())return;P.weapon=P.weapon==='syn'?'ter':'syn';edenWeapons();sfx('void');FX.spawn('vring',{x:P.x,y:1,z:P.z,size:.9,life:.35,col:P.weapon==='ter'?[.7,.3,1]:[.7,.85,1]});
-  callout(P.weapon==='ter'?'에고웨폰 · 테로르':'시너지아',P.weapon==='ter'?'vio':'');hud()}
+function nextWeapon(){const l=ownedWeapons();return l[(l.indexOf(heldWeapon())+1)%l.length]}
+function doSwap(){const l=ownedWeapons();if(l.length<2||DEF.tutorial||!canAct()||P.arche>0)return;const n=nextWeapon();
+  if(n==='ter')P.weapon='ter';else{P.weapon='syn';P.sister=n}
+  edenWeapons();sfx('void');const col=n==='ter'?[.7,.3,1]:n==='sentia'?[.6,.9,1]:[1,.65,.35];FX.spawn('vring',{x:P.x,y:1,z:P.z,size:.9,life:.35,col});
+  callout(n==='ter'?'에고웨폰 · 테로르':'시너지아 · '+WNAME[n],n==='ter'?'vio':'');hud()}
 // 상호작용(F): 단죄가 우선, 없으면 가까운 아이템 줍기
 function interactTarget(){if(cine||!P)return null;
   if(!DEF.noJudge&&!DEF.tutorial&&!fuseOn()){const e=ENS[0];if(!e.dead&&e.hp<=e.max*.25&&Math.hypot(e.x-P.x,e.z-P.z)<7)return{kind:'judge',e,label:DEF.label||'단죄'}}
@@ -341,6 +398,40 @@ function hurtPlayer(d,o={}){
   if(a>0){num(P.x,1.9,P.z,a,'me');sfx('hurt');buzz(a>=15?[60,40,90]:45);shake(.22)}
   if(!o.self&&a>0&&P.state!=='cine'&&P.state!=='ult'&&grounded()){P.state='hurt';P.t=0;P.hurtDur=.28}
   hud()}
+
+/* ═══════════════ 배경 변화 · 영역 전개 ═══════════════
+   강한 기술을 쓰면 배경과 공간 연출이 바뀐다.
+     void : 공허 (궁극기 · 아르케 해방 동안 계속 = 공허 영역)   fuse : 흡융 (네시스 흡융 전개 동안)
+     fear : 공명 베기 · 공포 (에고웨폰 테로르)   sentia / sensus : 두 자매의 스킬 (짧게) */
+const DOM={kind:'',k:0,burst:0,bk:''};
+function burst(kind,t){DOM.bk=kind;DOM.burst=Math.max(DOM.burst,t)}
+function updateDomain(dt){let want='',w=0;
+  if(P.arche>0){want='void';w=1}else if(fuseOn()){want='fuse';w=1}else if(DOM.burst>0){want=DOM.bk;w=Math.min(1,DOM.burst*1.4)}
+  DOM.burst=Math.max(0,DOM.burst-dt);
+  if(want&&want!==DOM.kind&&DOM.k<.05)DOM.kind=want;
+  const tgt=want===DOM.kind?w:0;DOM.k+=(tgt-DOM.k)*Math.min(1,dt*(tgt>DOM.k?5:2.2));
+  if(DOM.k<.01&&want)DOM.kind=want;
+  Stages.domain(DOM.kind,DOM.k);
+  const el=$('domain');if(el){el.className=DOM.kind?'d-'+DOM.kind:'';el.style.opacity=DOM.k.toFixed(3)}}
+
+/* ═══════════════ 헤일로 ═══════════════
+   이든: 보라색 5개 교차 고리와 검은 블랙홀 (아르케 해방)
+   네시스: 플래티나·블루 계열 5개 수렴·융합 고리 (항상 희미하게, 흡융 전개 중 강하게)
+   공명: 황금색 7개 재구성 고리 (에고웨폰으로 쓰는 공명 베기) */
+function haloAt(x,y,z,yaw,sc){return[x-Math.sin(yaw)*.34*sc,y+1.5*sc,z-Math.cos(yaw)*.34*sc]}
+function drawHalo(kind,x,y,z,yaw,a,sc0=1){const t=S.time||0,[hx,hy,hz]=haloAt(x,y,z,yaw,sc0),H=Math.PI/2,sc=sc0*.58;
+  if(kind==='eden'){
+    for(let i=0;i<5;i++){const ph=i*Math.PI*2/5;E.quad(E.geo('ring:0.9'),E.m4.trs(hx,hy,hz,H+.5*Math.sin(ph+t*.7),yaw,ph*.5+t*.35,.95*sc,1,.95*sc),E.tex.band,[.62,.35,1,.85*a],{add:1})}
+    E.quad(E.geo('ring:0.72'),E.m4.trs(hx,hy,hz,H,yaw,t*1.6,.62*sc,1,.62*sc),E.tex.band,[.85,.6,1,.7*a],{add:1});
+    E.quad(E.geo('ctr'),E.m4.trs(hx,hy,hz,0,E.yawTo(hx,hz),0,1.6*sc,1.6*sc,1),E.tex.glow,[.5,.2,.9,.55*a],{add:1});
+    E.mesh(E.geo('sphere'),E.m4.trs(hx,hy,hz,0,t,0,.3*sc,.3*sc,.3*sc),{c:[.02,0,.04],e:[0,0,0],outline:.025,oc:[.75,.5,1]})}
+  else if(kind==='nesis'){
+    for(let i=0;i<5;i++){const f=((t*.35+i/5)%1),r=(1.15-f*.95)*sc;E.quad(E.geo('ring:0.88'),E.m4.trs(hx,hy,hz,H,yaw,f*2+i,r,1,r),E.tex.band,[i%2?.55:.86,i%2?.78:.88,1,a*(.25+.75*Math.sin(f*Math.PI))],{add:1})}
+    E.quad(E.geo('ctr'),E.m4.trs(hx,hy,hz,0,E.yawTo(hx,hz),0,.9*sc,.9*sc,1),E.tex.glow,[.75,.85,1,.6*a],{add:1})}
+  else if(kind==='gold'){const rc=[1,.82,.35];
+    for(let i=0;i<7;i++){const ph=i*Math.PI*2/7,g=Math.min(1,(1.4-P.resonT)*2.5+.15),rr=(.45+.08*i)*g*sc;
+      E.quad(E.geo('ring:0.9'),E.m4.trs(hx,hy,hz,H+.7*Math.sin(ph-t*1.3)*(1-g*.6),yaw,ph+t*.6,rr,1,rr),E.tex.band,[rc[0],rc[1],rc[2],.85*a],{add:1})}
+    E.quad(E.geo('ctr'),E.m4.trs(hx,hy,hz,0,E.yawTo(hx,hz),0,1.4*sc,1.4*sc,1),E.tex.glow,[rc[0],rc[1]*.95,rc[2]*.9,.45*a],{add:1})}}
 
 /* ═══════════════ 흡융 기믹 ═══════════════ */
 const fuseOn=()=>S.fuse&&S.fuse.state==='run';
@@ -428,8 +519,8 @@ function parried(e,a){sfx('parry');hitstop=.12;slow(.45,.25);P.parryT=0;P.state=
 function updateEnemy(e,dt){
   if(e.dead){e.t+=dt;e.alpha=Math.max(0,1-e.t*1.5);return}
   e.flash=Math.max(0,e.flash-dt);
-  if(curId==='furor'&&e.state!=='stun'){e.stackT+=dt;if(e.stackT>4.5){e.stackT=0;if(e.stacks<6){e.stacks++;hud();if(e.stacks===3&&!e.flags.h3){e.flags.h3=1;tip(ctx.partner==='A'?'“열기 3중첩. 지금 지워.”':'“너무 뜨거워! 지금 「공허의 시야」!”')}}}}
-  if(curId==='teror'&&!e.flags.eye&&e.state!=='stun'){e.stackT+=dt;if(e.stackT>5.5){e.stackT=0;if(e.stacks<6){e.stacks++;hud()}}}
+  if(curId==='furor'&&e.state!=='stun'&&!(P.arche>0)){e.stackT+=dt;if(e.stackT>4.5){e.stackT=0;if(e.stacks<6){e.stacks++;hud();if(e.stacks===3&&!e.flags.h3){e.flags.h3=1;tip(ctx.partner==='A'?'“열기 3중첩. 지금 지워.”':'“너무 뜨거워! 지금 「공허의 시야」!”')}}}}
+  if(curId==='teror'&&!e.flags.eye&&e.state!=='stun'&&!(P.arche>0)){e.stackT+=dt;if(e.stackT>5.5){e.stackT=0;if(e.stacks<6){e.stacks++;hud()}}}
   if(curId==='phobia'&&e.brokenT>0){e.brokenT-=dt;if(e.brokenT<=0)hud()}
   if(e.vuln>0)e.vuln=Math.max(0,e.vuln-dt);
   const dx=P.x-e.x,dz=P.z-e.z,d=Math.hypot(dx,dz)||1;
@@ -441,7 +532,7 @@ function updateEnemy(e,dt){
     else if(e.cool<=0)key=DEF.pick(e,d);
     if(key){beginAttack(e,key);return}
     const want=tut&&(tut.step<3||(tut.step>4&&tut.step<8))?99:DEF.pref;
-    e.moving=false;if(e.lock)return;if(d>want){const sp=DEF.speed*(curId==='furor'?1+e.stacks*.08:1);e.x+=dx/d*sp*dt;e.z+=dz/d*sp*dt;e.moving=true}
+    e.moving=false;if(e.lock)return;if(d>want){const sp=DEF.speed*(curId==='furor'?1+e.stacks*.08:1)*(P.arche>0?ARCHE.slow:1);e.x+=dx/d*sp*dt;e.z+=dz/d*sp*dt;e.moving=true}
     else if(ENS.length>1){e.x+=-dz/d*.6*dt;e.z+=dx/d*.6*dt}
     return}
   if(e.state==='wind'){const a=e.att;e.t+=dt;
@@ -471,10 +562,12 @@ function update(dt){
   if(qq.plunge)doPlunge(false);if(qq.plungeH)doPlunge(true);
   if(qq.void)doVoid();if(qq.skill)doSkill();if(qq.ult)doUlt();if(qq.swap)doSwap();if(qq.interact)doInteract();
   // 타이머
-  P.iframe=Math.max(0,P.iframe-dt);P.dodgeCd=Math.max(0,P.dodgeCd-dt);P.dashCd=Math.max(0,P.dashCd-dt);P.skillCd=Math.max(0,P.skillCd-dt);P.flash=Math.max(0,P.flash-dt);
+  P.iframe=Math.max(0,P.iframe-dt);P.dodgeCd=Math.max(0,P.dodgeCd-dt);P.dashCd=Math.max(0,P.dashCd-dt);P.skillCd=Math.max(0,P.skillCd-dt);P.cdA=Math.max(0,P.cdA-dt);P.cdB=Math.max(0,P.cdB-dt);P.cdX=Math.max(0,P.cdX-dt);P.flash=Math.max(0,P.flash-dt);
+  if(P.arche>0){P.arche-=dt;if(P.arche<=0){P.arche=0;edenWeapons();callout('아르케 해방 종료','');FX.spawn('vring',{x:P.x,y:1.2,z:P.z,size:1,life:.5,col:[.7,.6,1]});hud()}}
+  P.resonT=Math.max(0,P.resonT-dt);
   P.parryT=Math.max(0,P.parryT-dt);P.comboWin=Math.max(0,(P.comboWin||0)-dt);
   // 마스터 모드: 쿨타임 없음 · 공허/공명 무제한 · 무적
-  if(window.Master&&Master.on){const m=Master.opts;if(m.noCd){P.skillCd=0;P.dodgeCd=0;P.dashCd=0}if(m.freeRes){P.void=100;P.ult=100}if(m.god&&P.hp<P.max)P.hp=P.max}if(P.fear>0)P.fear=Math.max(0,P.fear-dt);if(P.bind>0)P.bind=Math.max(0,P.bind-dt);
+  if(window.Master&&Master.on){const m=Master.opts;if(m.noCd){P.skillCd=0;P.cdA=0;P.cdB=0;P.cdX=0;P.dodgeCd=0;P.dashCd=0}if(m.freeRes){P.void=100;P.ult=100}if(m.god&&P.hp<P.max)P.hp=P.max}if(P.fear>0)P.fear=Math.max(0,P.fear-dt);if(P.bind>0)P.bind=Math.max(0,P.bind-dt);
   const charging=IN.atkDown&&!IN.heavyFired&&!IN.airHold&&IN.atkT>.15&&grounded();
   const spd=5.4*(P.fear>0?.75:1)*(charging?.35:1);
   // 상태별 움직임
@@ -499,6 +592,7 @@ function update(dt){
   for(let i=0;i<ENS.length;i++)for(let j=i+1;j<ENS.length;j++){const a=ENS[i],b=ENS[j];if(a.dead||b.dead)continue;const dx=a.x-b.x,dz=a.z-b.z,d=Math.hypot(dx,dz);if(d<1.2&&d>0){const p=(1.2-d)/2;a.x+=dx/d*p;a.z+=dz/d*p;b.x-=dx/d*p;b.z-=dz/d*p}}
   for(const e of ENS)updateEnemy(e,dt);
   updateFuse(dt);
+  updateDomain(dt);
   for(const it of S.items)it.t+=dt;
   if(tut)tutorial();
   if(curId==='teror'&&!ENS[0].flags.eye&&P.hp<P.max*.45)voidEye();
@@ -601,13 +695,16 @@ function hud(){const e=ENS.length>1?null:ENS[0];
   $('pRing').style.setProperty('--v',P.void);$('pRing').classList.toggle('full',P.void>=40);$('pVdN').textContent=P.void;
   $('pUlt').style.width=P.ult+'%';$('pUltN').textContent=Math.floor(P.ult)+'%';
   $('pSy').style.width=P.sync+'%';$('pSyN').textContent=P.sync+'%'+(P.sync>=80?' 승화':'');$('syncRow').classList.toggle('hot',P.sync>=80);
-  const pc=[];if(P.fear>0)pc.push(['vio','공포']);if(P.bind>0)pc.push(['red','사슬']);if(P.crit>0)pc.push(['gry',`설계 ×2 (${P.crit})`]);if(P.immune)pc.push(['gry','공포 면역']);if(P.weapon==='ter')pc.push(['vio','테로르 장착']);
+  const lr=$('linkRow');if(lr){const lit=linkLit();if(!lr.dataset.ok){lr.innerHTML='<span class="ln"></span>'+LINKS.map(l=>`<img src="img/emblems/${l.em}.webp" alt="${l.n} ${l.name}" title="${l.n}번 ${l.name}">`).join('');lr.dataset.ok=1}
+    lr.querySelectorAll('img').forEach((im,i)=>im.classList.toggle('on',lit.includes(i)));lr.querySelector('.ln').textContent=linkMax()?'링크 MAX':`링크 Lv.${lit.length-1}`;lr.classList.toggle('max',linkMax())}
+  const pc=[];if(P.arche>0)pc.push(['vio',`아르케 해방 ${Math.ceil(P.arche)}초`]);if(P.fear>0)pc.push(['vio','공포']);if(P.bind>0)pc.push(['red','사슬']);if(P.crit>0)pc.push(['gry',`설계 ×2 (${P.crit})`]);if(P.immune)pc.push(['gry','공포 면역']);if(P.weapon==='ter')pc.push(['vio','테로르 장착']);
   $('pChips').innerHTML=pc.map(c=>`<span class="chip ${c[0]}">${c[1]}</span>`).join('');
-  const skName=ctx.flags.reunited?'공명 베기':(ctx.partner==='A'?'정교한 설계':'감정 증폭');
+  const mode=skillMode(),skName=mode==='reson'?SKILL.reson.ter.btn:SKILL[mode].btn;
   document.querySelectorAll('[data-k="void"]').forEach(b=>{b.classList.toggle('ready',P.void>=40);b.classList.toggle('off',P.void<40)});
-  document.querySelectorAll('[data-k="skill"]').forEach(b=>{b.classList.toggle('off',P.skillCd>0);const c=b.querySelector('.cd');if(c)c.textContent=P.skillCd>0?Math.ceil(P.skillCd):'';const n=b.querySelector('b');if(n)n.textContent=b.classList.contains('sk')?skName:skName.slice(0,2)});
+  const cdMain=P[skillCdKey(mode)];
+  document.querySelectorAll('[data-k="skill"]').forEach(b=>{b.classList.toggle('off',cdMain>0);const c=b.querySelector('.cd');if(c)c.textContent=cdMain>0?Math.ceil(cdMain):'';const n=b.querySelector('b');if(n)n.textContent=b.id==='tE'?skName.split(/[ ·]+/).pop():skName});
   document.querySelectorAll('[data-k="ult"]').forEach(b=>{b.classList.toggle('ready',P.ult>=100);b.classList.toggle('off',P.ult<100);b.style.setProperty('--u',P.ult)});
-  document.querySelectorAll('[data-k="swap"] b').forEach(b=>b.textContent=P.weapon==='ter'?'시너지아':'테로르')}
+  document.querySelectorAll('[data-k="swap"] b').forEach(b=>b.textContent=WNAME[nextWeapon()])}
 // 매 프레임: 상호작용 안내, 화면 밖 보스 화살표, 미니맵
 let miniT=0;
 function overlay(){const it=interactTarget();const pr=$('prompt'),bi=$('bInteract');
@@ -654,8 +751,11 @@ function render(){if(!E.resize())return;E.clear();
   for(const it of S.items){const c=ITEMS[it.type].col,y=.7+Math.sin(it.t*3)*.12,rot=it.t*2;
     E.mesh(E.geo('cone4'),E.m4.trs(it.x,y,it.z,0,rot,0,.32,.3,.32),{c,e:[c[0]*.5,c[1]*.5,c[2]*.5],outline:.02});
     E.mesh(E.geo('cone4'),E.m4.trs(it.x,y,it.z,Math.PI,rot,0,.32,.3,.32),{c,e:[c[0]*.5,c[1]*.5,c[2]*.5],outline:.02})}
+  if(P.arche>0)drawHalo('eden',P.x,P.y,P.z,P.drawYaw,Math.min(1,P.arche*1.5,(ARCHE.dur-P.arche)*3));
+  if(P.resonT>0)drawHalo('gold',P.x,P.y,P.z,P.drawYaw,Math.min(1,P.resonT*2));
+  for(const e of ENS)if(curId==='nesis'&&!e.dead)drawHalo('nesis',e.x,e.hop||0,e.z,e.yaw,fuseOn()?1:.35,e.rig.scale);
   const pt=P.iframe>0?[.85,.85,1.25]:null;
-  P.rig.draw(P.x,P.y,P.z,P.drawYaw,{flash:P.flash>0?.2:0,tint:pt,emit:P.weapon==='ter'?[.06,0,.1]:null});
+  P.rig.draw(P.x,P.y,P.z,P.drawYaw,{flash:P.flash>0?.2:0,tint:pt,emit:P.arche>0?[.07,.02,.12]:P.weapon==='ter'?[.06,0,.1]:null});
   for(const e of ENS){if(e.alpha<=0)continue;let fl=e.flash>0?.18:0,emit=null,tint=null;
     if(e.state==='wind'&&e.att){const p=.5+.5*Math.sin(S.time*18);emit=e.att.parry?[.22*p,.11*p,0]:[.28*p,0,.02*p]}
     if(e.state==='stun')tint=[.65,.65,.75];
@@ -707,7 +807,7 @@ function bot(q){const mode=tut?'smart':window.__AS_BOT;
       if(inShape(en,a,P.x,P.z,.6)&&rem<.22&&rem>0){let ax,az;if(a.shape==='circle'){ax=P.x-a._cx;az=P.z-a._cz}else{ax=-en.dir[1];az=en.dir[0]}const l=Math.hypot(ax,az)||1;q._wx=ax/l;q._wz=az/l;q.dodge=1;return}}
     if(P.ult>=100&&d<4)q.ult=1;
     if(P.void>=40&&(e.stacks>=2||e.barrier))q.void=1;
-    if(P.skillCd<=0&&d<3)q.skill=1;
+    if(P[skillCdKey(skillMode())]<=0&&d<3)q.skill=1;
     if(curId==='phobia'&&P.weapon==='ter')q.swap=1;
     if(curId==='teror'&&ctx.flags.teror&&P.weapon==='syn'&&P.sync<70)q.swap=1;
     if(P.weapon==='ter'&&P.sync>=80)q.swap=1;
