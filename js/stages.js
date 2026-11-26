@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — stages.js  v0.9.5
+/* 액팅 소울 : 0 — stages.js  v0.9.6
    배경(전투 무대): 바닥, 소품, 먼 배경, 조명, 안개, 떠다니는 입자
 
    ■ 배경을 바꾸거나 추가하는 법
@@ -8,7 +8,7 @@
        amb     : 떠다니는 입자 { col 색, up: true=위로 / false=아래로 }
        props(r, add) : 소품 배치. add(도형, x, z, {y, rot:[x,y,z], s:[x,y,z], c, e}) 로 놓는다.
        far(r, add)   : 경기장 밖 먼 배경 (안개에 묻히는 실루엣) */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['stages.js']='0.9.5';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['stages.js']='0.9.6';
 
 (function(){
 'use strict';

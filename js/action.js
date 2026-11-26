@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — action.js  v0.9.5
+/* 액팅 소울 : 0 — action.js  v0.9.6
    3D 실시간 전투의 규칙: 입력(컴퓨터·휴대폰), 3인칭 백뷰 카메라, 보스 패턴, 판정,
    튜토리얼, 아이템, 지도, HUD.  그리는 일은 다른 파일이 맡는다.
      engine.js  : 3D 엔진       avatars.js : 캐릭터
@@ -17,7 +17,7 @@
      Space       점프 · Space+좌클릭 점프 공격 · Space+Ctrl+좌클릭 점프 강공격
      F           상호작용 (아이템 줍기 · 단죄)
      M           지도          Esc  설정 */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.9.5';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.9.6';
 
 (function(){
 'use strict';
@@ -72,25 +72,30 @@ const DEFS={
 /* ── 네시스 · 흡융 즉사 기믹 (시험판) ──────────────────────────────────
    네시스는 「흡융」으로 즉사 기믹을 전개한다. 피하는 것이 아니라, 완성되기 전에 흡융 현상 자체를 제거해야 한다.
    기믹은 두 가지 형태이고, 각각 정해진 상황에서 한 번씩만 나온다. 나오기 전에 「흡융의 징조」(2.2초)로 예고한다.
-   (네시스가 경직·무방비 상태일 때는 나오지 않고, 풀린 뒤에 시작한다.)
+   네시스가 경직·무방비일 때는 풀린 뒤에 시작하고, 앞 기믹이 끝나고 35초가 지나기 전에는 다음 기믹이 나오지 않는다.
 
-   ① 흡융 핵 전개  — 상황: 네시스 체력 60% (궁지에 몰려 흡융을 펼친다)
-      가운데로 물러나 피해 무효. 가장자리 쪽 흡융 핵 3개, 이든을 가운데로 끌어당김.
-      제거: 핵을 공격으로 부수기(핵 체력 30) · 핵 5m 안에서 「공허의 시야」 · 궁극기 7.5m. 제한 14초.
-   ② 흡융 낙인    — 상황: 네시스 체력 30% (마지막 발악 — 이든의 공허를 직접 삼키려 한다)
-      이든에게 낙인 3겹. 네시스는 피해 무효로 「흡융 사슬」(주황 · 흘려보내기 가능)만 계속 휘두른다.
-      제거: 흡융 사슬을 흘려보낼 때마다 낙인 1겹 · 네시스 6m 안에서 「공허의 시야」로 1겹. 제한 15초.
-      (이 동안 네시스는 사슬만 빠르게 이어 휘두른다 — 흘려보낸 뒤 경직 0.55초, 다음 사슬까지 0.35초)
+   ① 흡융 핵 전개  — 상황: 네시스 체력 55% (궁지에 몰려 흡융을 펼친다)
+      가운데로 물러나 피해 무효. 가장자리 쪽 흡융 핵 4개(체력 45), 이든을 가운데로 강하게 끌어당김.
+      네시스는 흡융탄을 쉬지 않고 쏜다.
+      제거: 핵을 공격으로 부수기 · 「공허의 시야」는 5m 안의 핵 「하나」만 · 궁극기 7.5m. 제한 12초.
+   ② 흡융 낙인    — 상황: 네시스 체력 35% 이하에서 이든이 네시스에게 공허의 힘(공허의 시야 · 공허 개방)을 쓸 때
+                    — 네시스가 이든의 공허를 역으로 삼키려 한다. 공허를 쓰지 않으면 나오지 않는다.
+      이든에게 낙인 4겹. 네시스는 피해 무효로 사슬만 이어 휘두른다.
+        「흡융 사슬」(주황) — 흘려보내면 낙인 1겹 제거.  「흡융 올가미」(빨강, 위장) — 흘려보낼 수 없다, 피해야 한다.
+        어느 쪽이든 맞으면 낙인 +1겹 (최대 5). 올가미는 4번 중 1번꼴.
+      제거: 흡융 사슬 흘려보내기 · 네시스 6m 안에서 「공허의 시야」로 1겹 (한 번만). 제한 15초.
    성공: 흡융 역류 — 네시스 6초 무방비 + 받는 피해 1.5배, 공명 +25.   실패: 즉사 (마스터 모드 무적이면 버팀).
    수치는 아래 FUSE 에서 바꾼다. */
-const FUSE={forms:[{kind:'cores',at:.6,limit:14},{kind:'brand',at:.3,limit:15}],omen:2.2,
-  cores:3,coreHp:30,radius:6.4,voidR:5,ultR:7.5,pull:[.5,1.7],brandStacks:3,brandVoidR:6,stun:6,vuln:1.5};
-DEFS.nesis={name:'네시스',sub:'집행자 · 흡융',tex:'nesis',H:1.9,hp:800,speed:2.8,pref:2.4,gap:.85,stage:'shrine',fuse:1,
-  atks:{cut:{mo:'H1',n:'흡융 베기',wind:.75,shape:'cone',range:3.0,ang:110,dmg:12,rec:.7,parry:1},
-        orb:{mo:'cast',n:'흡융탄',wind:1.0,shape:'circle',r:2.0,dmg:12,rec:.5,atPlayer:1},
-        lance:{mo:'stab',n:'역류 관통',wind:.9,shape:'line',len:8,w:1.4,dmg:15,rec:.8,heavy:1},
-        chain:{mo:'H2',n:'흡융 사슬',wind:.85,shape:'line',len:7,w:1.6,dmg:10,rec:.45,parry:1}},
-  pick(e,d){if(S.omen)return null;if(fuseOn())return S.fuse.kind==='brand'?(d<7.5?'chain':null):(e.cool<=0?'orb':null);const r=Math.random();if(d>4.2)return r<.55?'orb':'lance';return r<.5?'cut':r<.75?'lance':'orb'}};
+const FUSE={forms:[{kind:'cores',at:.55,limit:12},{kind:'brand',at:.35,limit:15,onVoid:1}],omen:2.2,gap:35,
+  cores:4,coreHp:45,radius:6.6,voidR:5,ultR:7.5,pull:[.8,2.3],orbCd:.35,
+  brandStacks:4,brandMax:5,brandVoidR:6,brandVoidUses:1,feint:.25,stun:6,vuln:1.5};
+DEFS.nesis={name:'네시스',sub:'집행자 · 흡융',tex:'nesis',H:1.9,hp:1000,speed:3.0,pref:2.4,gap:.7,stage:'shrine',fuse:1,
+  atks:{cut:{mo:'H1',n:'흡융 베기',wind:.7,shape:'cone',range:3.0,ang:110,dmg:15,rec:.6,parry:1},
+        orb:{mo:'cast',n:'흡융탄',wind:.9,shape:'circle',r:2.2,dmg:14,rec:.4,atPlayer:1},
+        lance:{mo:'stab',n:'역류 관통',wind:.85,shape:'line',len:8,w:1.4,dmg:18,rec:.7,heavy:1},
+        chain:{mo:'H2',n:'흡융 사슬',wind:.8,shape:'line',len:7,w:1.6,dmg:12,rec:.4,parry:1},
+        snare:{mo:'H1',n:'흡융 올가미',wind:.8,shape:'line',len:7,w:1.8,dmg:16,rec:.45}},
+  pick(e,d){if(S.omen)return null;if(fuseOn())return S.fuse.kind==='brand'?(d<7.5?(Math.random()<FUSE.feint?'snare':'chain'):null):(e.cool<=0?'orb':null);const r=Math.random();if(d>4.2)return r<.55?'orb':'lance';return r<.5?'cut':r<.75?'lance':'orb'}};
 /* ── 링크 시스템 ────────────────────────────────────────────────
    이든이 연결한 감정의 고리. 0번(공허 & 흡융)은 처음부터 연결되어 있고, 사념을 계승할 때마다 하나씩 이어진다.
    여섯 고리가 모두 이어지면(링크 최대) 궁극기 「공허 개방」이 「아르케 해방」으로 바뀐다.
@@ -163,7 +168,7 @@ function start(id){curId=id;DEF=DEFS[id];const st=Stages.build(DEF.stage);FX.cle
   ENS=[];const n=DEF.count||1;
   for(let i=0;i<n;i++){const a=n>1?(i-(n-1)/2)*.9:0;ENS.push({x:Math.sin(a)*5,z:-3-Math.cos(a)*2*(n>1?1:0),hp:DEF.hp,max:DEF.hp,state:'idle',t:0,cool:1.2+i*.6,stun:0,
     stacks:0,stackT:0,barrier:id==='phobia'?1:0,brokenT:0,flash:0,dir:[0,1],att:null,alpha:1,dead:false,flags:{},fed:0,yaw:0,moving:false,rig:Avatars.create(DEF.tex)})}
-  S.tele=[];S.items=[];S.hitQ=[];S.fuse=null;S.omen=null;S.deathMsg='';S.archeTip=0;DOM.k=0;DOM.kind='';DOM.burst=0;TS=1;hitstop=0;slowT=0;cine=null;IN.q={};IN.atkDown=false;
+  S.tele=[];S.items=[];S.hitQ=[];S.fuse=null;S.omen=null;S.fuseEndT=-1e9;S.deathMsg='';S.archeTip=0;DOM.k=0;DOM.kind='';DOM.burst=0;TS=1;hitstop=0;slowT=0;cine=null;IN.q={};IN.atkDown=false;
   tut=DEF.tutorial?{step:0,hits:0,heavy:0,parried:0,dodged:0,plunged:0,voided:0,ulted:0,shown:-1}:null;
   CAM.yaw=0;CAM.pitch=.24;CAM.x=0;CAM.y=3;CAM.z=10;CAM.tx=0;CAM.ty=1.3;CAM.tz=5;CAM.lookT=9;
   $('aName').textContent=DEF.name;$('aSub').textContent=DEF.sub;$('aJudgeMark').style.display=(DEF.noJudge||DEF.tutorial)?'none':'block';
@@ -312,8 +317,9 @@ async function doVoid(){if(P.void<40||P.state==='dodge'||P.state==='ult')return;
   slow(1.1,.3);vfx();
   FX.spawn('ring',{x:P.x,z:P.z,size:1.2,grow:7,life:.7,col:[.6,.5,1]});FX.spawn('vring',{x:P.x,y:1.1,z:P.z,size:1,life:.5,col:[.7,.6,1]});
   P.fear=0;
-  if(fuseOn()){if(S.fuse.kind==='cores'){const n=coresInRadius(FUSE.voidR,true);if(!n)callout('흡융 핵이 너무 멀다 — 5m 안에서','red')}
-    else{const e=ENS[0];if(Math.hypot(e.x-P.x,e.z-P.z)<=FUSE.brandVoidR)brandStrip('void');else callout('네시스가 너무 멀다 — 6m 안에서','red')}}
+  if(fuseOn()){if(S.fuse.kind==='cores'){const c=nearestCore(FUSE.voidR);if(c)coreBreak(c,true);else callout('흡융 핵이 너무 멀다 — 5m 안에서','red')}
+    else{const e=ENS[0],f=S.fuse;if((f.voidUsed||0)>=FUSE.brandVoidUses)callout('공허로는 더 지울 수 없다 — 사슬을 흘려보내라','red');else if(Math.hypot(e.x-P.x,e.z-P.z)<=FUSE.brandVoidR){f.voidUsed=(f.voidUsed||0)+1;brandStrip('void')}else callout('네시스가 너무 멀다 — 6m 안에서','red')}}
+  else fuseVoidTrigger();
   for(const e of alive()){if(e.lock)continue;if(Math.hypot(e.x-P.x,e.z-P.z)>9)continue;const had=e.stacks;e.stacks=0;e.stun=3;e.state='stun';S.tele=S.tele.filter(t=>t.e!==e);e.att=null;
     if(curId==='phobia'){e.barrier=0;e.brokenT=8}
     hitEnemy(e,10,{pierce:1,noCrit:1});
@@ -405,7 +411,7 @@ function doUlt(){if(P.ult<100||!canAct()||!grounded())return;P.ult=0;P.state='ul
   FX.spawn('vring',{x:P.x,y:1.2,z:P.z,size:1.4,life:.6,col:[.6,.45,1]});hud()}
 function ultHit(){P.ultHit=true;FX.spawn('ring',{x:P.x,z:P.z,size:1.5,grow:4.5,life:.8,col:[.6,.45,1]});FX.spawn('beam',{x:P.x,z:P.z,col:[.55,.4,1],life:.8});
   FX.spawn('spark',{x:P.x,y:.5,z:P.z,n:24,col:[.75,.6,1],speed:8});shake(.45);sfx('heavy');
-  coresInRadius(FUSE.ultR,true);
+  if(fuseOn())coresInRadius(FUSE.ultR,true);else fuseVoidTrigger();
   for(const e of alive()){if(e.lock||Math.hypot(e.x-P.x,e.z-P.z)>7.5)continue;e.stacks=0;S.tele=S.tele.filter(t=>t.e!==e);e.att=null;e.state='stun';e.stun=2.5;
     if(curId==='phobia'){e.barrier=0;e.brokenT=6}hitEnemy(e,60,{pierce:1,noCrit:1})}}
 function nextWeapon(){const l=ownedWeapons();return l[(l.indexOf(heldWeapon())+1)%l.length]}
@@ -415,7 +421,7 @@ function doSwap(){const l=ownedWeapons();if(l.length<2||DEF.tutorial||!canAct()|
   callout(n==='ter'?'에고웨폰 · 테로르':'시너지아 · '+WNAME[n],n==='ter'?'vio':'');hud()}
 // 상호작용(F): 단죄가 우선, 없으면 가까운 아이템 줍기
 function interactTarget(){if(cine||!P)return null;
-  if(!DEF.noJudge&&!DEF.tutorial&&!fuseOn()&&!S.omen&&!(DEF.fuse&&(ENS[0].flags.fuseN||0)<FUSE.forms.length)){const e=ENS[0];if(!e.dead&&e.hp<=e.max*.25&&Math.hypot(e.x-P.x,e.z-P.z)<7)return{kind:'judge',e,label:DEF.label||'단죄'}}
+  if(!DEF.noJudge&&!DEF.tutorial&&!fuseOn()&&!S.omen&&!(DEF.fuse&&((ENS[0].flags.fuseN||0)<1||(S.fuse&&S.fuse.state!=='done')))){const e=ENS[0];if(!e.dead&&e.hp<=e.max*.25&&Math.hypot(e.x-P.x,e.z-P.z)<7)return{kind:'judge',e,label:DEF.label||'단죄'}}
   let best=null,bd=1.9;for(const it of S.items){const d=Math.hypot(it.x-P.x,it.z-P.z);if(d<bd){bd=d;best=it}}
   return best?{kind:'item',it:best,label:ITEMS[best.type].name+' 줍기'}:null}
 function doInteract(){const t=interactTarget();if(!t)return;if(t.kind==='judge')return doJudge(t.e);
@@ -471,10 +477,14 @@ function drawHalo(kind,x,y,z,yaw,a,sc0=1){const t=S.time||0,[hx,hy,hz]=haloAt(x,
 /* ═══════════════ 흡융 기믹 ═══════════════ */
 const fuseOn=()=>S.fuse&&S.fuse.state==='run';
 function nearestCore(maxD){if(!fuseOn())return null;let b=null,bd=maxD||1e9;for(const c of S.fuse.cores){if(c.dead)continue;const d=Math.hypot(c.x-P.x,c.z-P.z);if(d<bd){bd=d;b=c}}return b}
+const fuseGapOk=()=>S.time-(S.fuseEndT??-1e9)>=FUSE.gap;
+// 공허의 힘을 쓸 때: 낙인 조건(체력 35% 이하 · 간격)이 맞으면 네시스가 이든의 공허를 역으로 삼키려 한다
+function fuseVoidTrigger(){if(!DEF.fuse||S.fuse||S.omen)return;const e=ENS[0];if(!e||e.dead)return;const n=e.flags.fuseN||0,F=FUSE.forms[n];
+  if(F&&F.onVoid&&e.hp<=e.max*F.at&&fuseGapOk()&&Math.hypot(e.x-P.x,e.z-P.z)<12){e.flags.fuseN=n+1;setTimeout(()=>{if(!e.dead)fuseOmen(e,n)},250)}}
 function fuseOmen(e,n){S.omen={n,t:FUSE.omen};S.tele=S.tele.filter(t=>t.e!==e);e.att=null;e.state='idle';
   FX.spawn('vring',{x:e.x,y:1.4,z:e.z,size:1.4,life:.8,col:[.75,.85,1]});sfx('judge');shake(.15);
-  callout(n===0?'흡융의 징조 — 네시스가 궁지에 몰렸다':'흡융의 징조 — 네시스가 이든의 공허를 노린다','red');
-  tip(n===0?'“더는… 물러설 곳이 없네요. 그렇다면 전부 삼킬게요.”':'“당신의 공허… 그것까지 제 것으로 만들겠어요.”','nesis');hud()}
+  callout(n===0?'흡융의 징조 — 네시스가 궁지에 몰렸다':'흡융의 징조 — 네시스가 이든의 공허를 역으로 삼킨다','red');
+  tip(n===0?'“더는… 물러설 곳이 없네요. 그렇다면 전부 삼킬게요.”':'“그 공허… 지금 저에게 쓰셨죠? 그대로 삼켜 드릴게요.”','nesis');hud()}
 function fuseStart(e,n){const F=FUSE.forms[n];S.omen=null;
   S.tele=S.tele.filter(t=>t.e!==e);e.att=null;e.state='idle';e.moving=false;
   if(F.kind==='cores'){e.cool=1.6;e.lock=true;
@@ -484,13 +494,13 @@ function fuseStart(e,n){const F=FUSE.forms[n];S.omen=null;
     S.fuse={state:'run',kind:'cores',n,t:0,limit:F.limit,cores,tick:0};
     callout('흡융 핵 전개 — 핵을 모두 제거하라','red');
     tip('“흡융… 전개. 이든 님, 피하실 수는 없어요. 지우지 못하면 끝이에요.”','nesis');
-    setTimeout(()=>{if(fuseOn())tip(ctx.partner==='A'?'“핵 세 개야. 부수거나, 가까이 가서 「공허의 시야」로 지워.”':'“주인! 저 빛나는 구슬들 다 부숴야 해! 공허로 지우면 한 번에!”')},2600)}
+    setTimeout(()=>{if(fuseOn())tip(ctx.partner==='A'?'“핵이 네 개야. 공허의 시야로는 하나씩밖에 못 지워. 나머진 직접 부숴.”':'“주인! 구슬 네 개! 공허는 하나만 지워져, 나머진 때려 부숴!”')},2600)}
   else{e.cool=.6;e.inv=true;
     S.fuse={state:'run',kind:'brand',n,t:0,limit:F.limit,stacks:FUSE.brandStacks,cores:[],tick:0};
     FX.spawn('beam',{x:P.x,z:P.z,col:[1,.6,.3],life:.6});FX.spawn('ring',{x:P.x,z:P.z,size:.4,grow:1.6,life:.5,col:[1,.6,.3]});
     callout('흡융 낙인 — 흡융 사슬을 흘려보내라','red');
     tip('“낙인을 새겼어요. 이게 다 차면, 당신은 제 안으로 녹아들어요.”','nesis');
-    setTimeout(()=>{if(fuseOn())tip(ctx.partner==='A'?'“주황 사슬은 흘려보낼 수 있어. 흘릴 때마다 낙인이 하나씩 벗겨져. 가까이서 공허의 시야도 돼.”':'“사슬 오면 딱 맞춰 흘려! 그럼 낙인이 벗겨져! 붙어서 공허 써도 돼!”')},2400)}
+    setTimeout(()=>{if(fuseOn())tip(ctx.partner==='A'?'“주황 사슬만 흘려보내. 빨간 건 위장이야, 피해. 맞으면 낙인이 다시 늘어.”':'“주황은 흘리고 빨강은 피해! 맞으면 낙인 늘어나!”')},2400)}
   sfx('judge');shake(.35);vfx();slow(.6,.4);hud()}
 function brandStrip(how){const f=S.fuse;if(!f||f.kind!=='brand'||f.state!=='run')return;f.stacks--;
   FX.spawn('ring',{x:P.x,z:P.z,size:.5,grow:2,life:.45,col:how==='void'?[.65,.5,1]:[1,.75,.4]});FX.spawn('spark',{x:P.x,y:1.6,z:P.z,n:10,col:[1,.7,.4],speed:5});sfx('void');P.void=Math.min(100,P.void+8);gainUlt(6);
@@ -502,11 +512,11 @@ function coreBreak(c,byVoid){c.dead=true;FX.spawn('ring',{x:c.x,z:c.z,size:.6,gr
   const left=S.fuse.cores.filter(k=>!k.dead).length;callout(left?`흡융 핵 제거 · 남은 핵 ${left}`:'흡융 소거',left?'vio':'org');
   if(!left)fuseClear()}
 function coresInRadius(r,byVoid){if(!fuseOn())return 0;let n=0;for(const c of S.fuse.cores)if(!c.dead&&Math.hypot(c.x-P.x,c.z-P.z)<=r){coreBreak(c,byVoid);n++;if(!S.fuse||S.fuse.state!=='run')break}return n}
-function fuseClear(){const e=ENS[0];S.fuse.state='done';e.lock=false;e.inv=false;e.state='stun';e.stun=FUSE.stun;e.vuln=FUSE.stun;S.tele=[];e.att=null;
+function fuseClear(){const e=ENS[0];S.fuse.state='done';S.fuseEndT=S.time;e.lock=false;e.inv=false;e.state='stun';e.stun=FUSE.stun;e.vuln=FUSE.stun;S.tele=[];e.att=null;
   FX.spawn('beam',{x:e.x,z:e.z,col:[1,.6,.3],life:.7});FX.spawn('ring',{x:e.x,z:e.z,size:1,grow:5,life:.7,col:[.55,.8,1]});sfx('parry');slow(.7,.3);shake(.4);
   P.ult=Math.min(100,P.ult+25);setTimeout(()=>{if(S.fuse&&S.fuse.state==='done'){S.fuse=null;hud()}},1200);
   callout('흡융 역류 — 네시스 무방비','org');tip('“흡융이… 역류해요? 이든 님, 당신은 대체…!”','nesis');hud()}
-function fuseFail(){const f=S.fuse;f.state='fail';const e=ENS[0];
+function fuseFail(){const f=S.fuse;f.state='fail';S.fuseEndT=S.time;const e=ENS[0];
   for(const c of f.cores)if(!c.dead)FX.spawn('beam',{x:c.x,z:c.z,col:[1,.5,.25],life:.6});
   FX.spawn('beam',{x:P.x,z:P.z,col:[1,.55,.3],life:1});FX.spawn('ring',{x:P.x,z:P.z,size:.5,grow:4,life:.8,col:[1,.6,.3]});
   sfx('judge');shake(.6);buzz([220,80,320]);vfx();
@@ -515,7 +525,7 @@ function fuseFail(){const f=S.fuse;f.state='fail';const e=ENS[0];
   else{S.deathMsg=f.kind==='brand'?'흡융 낙인이 완성되었다. 낙인을 모두 지우지 못했다.':'흡융에 삼켜졌다. 흡융 핵을 모두 지우지 못했다.';P.hp=0;callout('흡융 — 즉사','red')}
   e.lock=false;e.inv=false;e.cool=1.2;hud()}
 function updateFuse(dt){const e=ENS[0];
-  if(DEF.fuse&&!S.fuse&&!S.omen&&e&&!e.dead&&!cine&&e.state!=='stun'&&!(e.vuln>0)){const n=e.flags.fuseN||0;const F=FUSE.forms[n];if(F&&e.hp<=e.max*F.at){e.flags.fuseN=n+1;fuseOmen(e,n)}}
+  if(DEF.fuse&&!S.fuse&&!S.omen&&e&&!e.dead&&!cine&&e.state!=='stun'&&!(e.vuln>0)){const n=e.flags.fuseN||0;const F=FUSE.forms[n];if(F&&!F.onVoid&&e.hp<=e.max*F.at&&fuseGapOk()){e.flags.fuseN=n+1;fuseOmen(e,n)}}
   if(S.omen){S.omen.t-=dt;e.cool=Math.max(e.cool,.5);if(Math.random()<dt*8)FX.spawn('glow',{x:e.x+(Math.random()-.5)*2,y:1+Math.random()*1.6,z:e.z+(Math.random()-.5)*2,size:.6,col:Math.random()<.5?[1,.6,.3]:[.5,.8,1],life:.4});if(S.omen.t<=0&&!e.dead)fuseStart(e,S.omen.n)}
   const f=S.fuse;if(!f||!e||e.dead)return;
   for(const c of f.cores){c.t+=dt;c.flash=Math.max(0,c.flash-dt)}
@@ -553,6 +563,7 @@ function strike(e){const a=e.att;S.tele=S.tele.filter(t=>t.e!==e);
     if(a.parry&&P.parryT>0){parried(e,a);return}
     if(P.iframe>0){callout('회피','');P.void=Math.min(100,P.void+8);gainUlt(5);if(tut&&tut.step===4)tut.dodged++;e.state='rec';e.t=0;return}
     hurtPlayer(a.dmg);
+    if(fuseOn()&&S.fuse.kind==='brand'&&(a.n==='흡융 사슬'||a.n==='흡융 올가미')){const f=S.fuse;f.stacks=Math.min(FUSE.brandMax,f.stacks+1);callout(`낙인 증가 · ${f.stacks}겹`,'red');hud()}
     if(a.fear&&!P.immune){P.fear=4;callout('공포 — 주는 피해 감소','vio')}
     if(a.bind){P.bind=3;callout('사슬 — 흘려보내기 봉인','red')}
     if(a.heavy)P.x+=e.dir[0]*.8,P.z+=e.dir[1]*.8;
@@ -591,7 +602,7 @@ function updateEnemy(e,dt){
     if(a.leap&&e.t<a.wind*.5){a._cx=P.x;a._cz=P.z}
     if(a.leap){const k=clamp((e.t-a.wind*.55)/(a.wind*.45),0,1);if(k>0){e.x=a._sx+(a._cx-a._sx)*k;e.z=a._sz+(a._cz-a._sz)*k;e.hop=Math.sin(k*Math.PI)*2.2}}
     if(e.t>=a.wind){e.hop=0;strike(e)}return}
-  if(e.state==='rec'){e.t+=dt;if(e.t>=(e.att?e.att.rec:.5)){e.state='idle';e.cool=(fuseOn()&&S.fuse.kind==='brand')?.35:DEF.gap*R(.7,1.3);e.att=null}}
+  if(e.state==='rec'){e.t+=dt;if(e.t>=(e.att?e.att.rec:.5)){e.state='idle';e.cool=fuseOn()?(S.fuse.kind==='brand'?.35:FUSE.orbCd):DEF.gap*R(.7,1.3);e.att=null}}
 }
 
 /* ═══════════════ 갱신 ═══════════════ */
@@ -881,5 +892,5 @@ window.Action={async run(id,c){ctx=c;
   return new Promise(res=>{resolveFn=res;start(id)})},
   pause(v){if(S.running&&!S.mapPause)S.paused=v},closeMap,
   get running(){return S.running},
-  get state(){return{P,ENS,DEF,tut}}};
+  get state(){return{P,ENS,DEF,tut,S}}};
 })();

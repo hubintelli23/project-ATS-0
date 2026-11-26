@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 액팅 소울 : 0 — index.html  v0.9.5 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
+<!-- 액팅 소울 : 0 — index.html  v0.9.6 (타이틀 · 비주얼노벨 · 대본 · HUD) -->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -542,7 +542,7 @@ body.pc .spr.spirit{height:30%}
       <button class="tbtn" id="tUpd" style="font-size:15px;font-weight:400">업데이트 기록</button>
     </div>
     <div id="verWarn"></div>
-    <div class="ver"><span id="verNo">v0.9.5</span> · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
+    <div class="ver"><span id="verNo">v0.9.6</span> · 3D 액션 체험판 · 컴퓨터 · 휴대폰 · 제 0막 ~ 제 2막 에필로그</div>
   </div>
 
   <div id="end" class="layer">
@@ -566,7 +566,7 @@ body.pc .spr.spirit{height:30%}
 <script>
 'use strict';
 /* ═══════════ 파일 확인 · 오류 표시 ═══════════ */
-const GAME_VERSION='0.9.5';
+const GAME_VERSION='0.9.6';
 const REQUIRED_FILES=['engine.js','effects.js','weapons.js','avatars.js','stages.js','assets.js','action.js'];
 function showError(msg){const b=document.getElementById('errBox');if(!b)return;b.textContent='오류 — '+msg;b.classList.add('on');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('on'),15000)}
 addEventListener('error',e=>{const f=(e.filename||'').split('/').pop();showError((e.message||'알 수 없는 오류')+(f?`\n파일: ${f} ${e.lineno||''}줄`:''))});
