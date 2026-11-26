@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — avatars.js  v0.9.3
+/* 액팅 소울 : 0 — avatars.js  v0.9.5
    아바타(캐릭터) 정의 + 관절 리그 + 동작(애니메이션)
 
    ■ 캐릭터를 바꾸거나 추가하는 법
@@ -13,7 +13,7 @@
        extra   : [관절, 도형, 위치, 회전, 크기, 색이름, {e:발광}] 추가 부품
      나중에 실제 3D 모델(glTF 등)로 바꿀 때는 Avatars.create 가 돌려주는
      객체의 play / update / draw 세 함수만 같은 이름으로 구현하면 된다. */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['avatars.js']='0.9.3';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['avatars.js']='0.9.5';
 
 (function(){
 'use strict';

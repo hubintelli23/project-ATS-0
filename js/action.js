@@ -1,4 +1,4 @@
-/* 액팅 소울 : 0 — action.js  v0.9.3
+/* 액팅 소울 : 0 — action.js  v0.9.5
    3D 실시간 전투의 규칙: 입력(컴퓨터·휴대폰), 3인칭 백뷰 카메라, 보스 패턴, 판정,
    튜토리얼, 아이템, 지도, HUD.  그리는 일은 다른 파일이 맡는다.
      engine.js  : 3D 엔진       avatars.js : 캐릭터
@@ -17,7 +17,7 @@
      Space       점프 · Space+좌클릭 점프 공격 · Space+Ctrl+좌클릭 점프 강공격
      F           상호작용 (아이템 줍기 · 단죄)
      M           지도          Esc  설정 */
-(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.9.3';
+(window.AS_VERSIONS=window.AS_VERSIONS||{})['action.js']='0.9.5';
 
 (function(){
 'use strict';
@@ -70,23 +70,27 @@ const DEFS={
     pick(e,d){if(!e.barrier&&e.brokenT<=0&&Math.random()<.6)return'regen';if(d>4.5)return Math.random()<.7?'chain':'reap';const r=Math.random();return r<.35?'reap':r<.65?'mist':'chain'}}
 };
 /* ── 네시스 · 흡융 즉사 기믹 (시험판) ──────────────────────────────────
-   네시스가 「흡융」으로 즉사 기믹을 전개한다. 피하는 것이 아니라, 기믹이 완성되기 전에
-   흡융 현상(흡융 핵)을 모두 제거해야 한다.
-   · 생성   체력 70% · 40%에서 경기장 가운데로 물러나 흡융을 전개. 이때 네시스는 피해를 받지 않는다.
-            경기장 가장자리 쪽에 흡융 핵 3개가 생기고, 이든을 가운데로 천천히 끌어당긴다(점점 강해짐).
-   · 제거   ① 공격으로 핵을 부순다 (핵 체력 30 — 일반 공격 3~4번, 강공격 2번)
-            ② 핵 근처(5m)에서 「공허의 시야」 — 범위 안의 핵을 한 번에 지운다
-            ③ 궁극기 「공허 개방」 — 7.5m 안의 핵을 지운다
-   · 판정   제한 시간(1회차 14초, 2회차 11초) 안에 핵을 모두 지우면 성공. 하나라도 남으면 즉사.
-   · 성공   흡융 역류 — 네시스 6초 무방비(경직) + 받는 피해 1.5배. 공허·공명 게이지 보상.
-   · 실패   흡융에 삼켜져 즉사 (마스터 모드 무적이면 버티고 계속).
+   네시스는 「흡융」으로 즉사 기믹을 전개한다. 피하는 것이 아니라, 완성되기 전에 흡융 현상 자체를 제거해야 한다.
+   기믹은 두 가지 형태이고, 각각 정해진 상황에서 한 번씩만 나온다. 나오기 전에 「흡융의 징조」(2.2초)로 예고한다.
+   (네시스가 경직·무방비 상태일 때는 나오지 않고, 풀린 뒤에 시작한다.)
+
+   ① 흡융 핵 전개  — 상황: 네시스 체력 60% (궁지에 몰려 흡융을 펼친다)
+      가운데로 물러나 피해 무효. 가장자리 쪽 흡융 핵 3개, 이든을 가운데로 끌어당김.
+      제거: 핵을 공격으로 부수기(핵 체력 30) · 핵 5m 안에서 「공허의 시야」 · 궁극기 7.5m. 제한 14초.
+   ② 흡융 낙인    — 상황: 네시스 체력 30% (마지막 발악 — 이든의 공허를 직접 삼키려 한다)
+      이든에게 낙인 3겹. 네시스는 피해 무효로 「흡융 사슬」(주황 · 흘려보내기 가능)만 계속 휘두른다.
+      제거: 흡융 사슬을 흘려보낼 때마다 낙인 1겹 · 네시스 6m 안에서 「공허의 시야」로 1겹. 제한 15초.
+      (이 동안 네시스는 사슬만 빠르게 이어 휘두른다 — 흘려보낸 뒤 경직 0.55초, 다음 사슬까지 0.35초)
+   성공: 흡융 역류 — 네시스 6초 무방비 + 받는 피해 1.5배, 공명 +25.   실패: 즉사 (마스터 모드 무적이면 버팀).
    수치는 아래 FUSE 에서 바꾼다. */
-const FUSE={at:[.7,.4],limit:[14,11],cores:3,coreHp:30,radius:6.4,voidR:5,ultR:7.5,pull:[.5,1.7],stun:6,vuln:1.5};
+const FUSE={forms:[{kind:'cores',at:.6,limit:14},{kind:'brand',at:.3,limit:15}],omen:2.2,
+  cores:3,coreHp:30,radius:6.4,voidR:5,ultR:7.5,pull:[.5,1.7],brandStacks:3,brandVoidR:6,stun:6,vuln:1.5};
 DEFS.nesis={name:'네시스',sub:'집행자 · 흡융',tex:'nesis',H:1.9,hp:800,speed:2.8,pref:2.4,gap:.85,stage:'shrine',fuse:1,
   atks:{cut:{mo:'H1',n:'흡융 베기',wind:.75,shape:'cone',range:3.0,ang:110,dmg:12,rec:.7,parry:1},
         orb:{mo:'cast',n:'흡융탄',wind:1.0,shape:'circle',r:2.0,dmg:12,rec:.5,atPlayer:1},
-        lance:{mo:'stab',n:'역류 관통',wind:.9,shape:'line',len:8,w:1.4,dmg:15,rec:.8,heavy:1}},
-  pick(e,d){if(S.fuse)return e.cool<=0?'orb':null;const r=Math.random();if(d>4.2)return r<.55?'orb':'lance';return r<.5?'cut':r<.75?'lance':'orb'}};
+        lance:{mo:'stab',n:'역류 관통',wind:.9,shape:'line',len:8,w:1.4,dmg:15,rec:.8,heavy:1},
+        chain:{mo:'H2',n:'흡융 사슬',wind:.85,shape:'line',len:7,w:1.6,dmg:10,rec:.45,parry:1}},
+  pick(e,d){if(S.omen)return null;if(fuseOn())return S.fuse.kind==='brand'?(d<7.5?'chain':null):(e.cool<=0?'orb':null);const r=Math.random();if(d>4.2)return r<.55?'orb':'lance';return r<.5?'cut':r<.75?'lance':'orb'}};
 /* ── 링크 시스템 ────────────────────────────────────────────────
    이든이 연결한 감정의 고리. 0번(공허 & 흡융)은 처음부터 연결되어 있고, 사념을 계승할 때마다 하나씩 이어진다.
    여섯 고리가 모두 이어지면(링크 최대) 궁극기 「공허 개방」이 「아르케 해방」으로 바뀐다.
@@ -159,7 +163,7 @@ function start(id){curId=id;DEF=DEFS[id];const st=Stages.build(DEF.stage);FX.cle
   ENS=[];const n=DEF.count||1;
   for(let i=0;i<n;i++){const a=n>1?(i-(n-1)/2)*.9:0;ENS.push({x:Math.sin(a)*5,z:-3-Math.cos(a)*2*(n>1?1:0),hp:DEF.hp,max:DEF.hp,state:'idle',t:0,cool:1.2+i*.6,stun:0,
     stacks:0,stackT:0,barrier:id==='phobia'?1:0,brokenT:0,flash:0,dir:[0,1],att:null,alpha:1,dead:false,flags:{},fed:0,yaw:0,moving:false,rig:Avatars.create(DEF.tex)})}
-  S.tele=[];S.items=[];S.fuse=null;S.deathMsg='';S.archeTip=0;DOM.k=0;DOM.kind='';DOM.burst=0;TS=1;hitstop=0;slowT=0;cine=null;IN.q={};IN.atkDown=false;
+  S.tele=[];S.items=[];S.hitQ=[];S.fuse=null;S.omen=null;S.deathMsg='';S.archeTip=0;DOM.k=0;DOM.kind='';DOM.burst=0;TS=1;hitstop=0;slowT=0;cine=null;IN.q={};IN.atkDown=false;
   tut=DEF.tutorial?{step:0,hits:0,heavy:0,parried:0,dodged:0,plunged:0,voided:0,ulted:0,shown:-1}:null;
   CAM.yaw=0;CAM.pitch=.24;CAM.x=0;CAM.y=3;CAM.z=10;CAM.tx=0;CAM.ty=1.3;CAM.tz=5;CAM.lookT=9;
   $('aName').textContent=DEF.name;$('aSub').textContent=DEF.sub;$('aJudgeMark').style.display=(DEF.noJudge||DEF.tutorial)?'none':'block';
@@ -225,8 +229,9 @@ const ENEMY_TRAIL={nesis:[.55,.8,1],kardo:[.9,.8,.6],furor:[1,.45,.2],fallen:[.8
 function gainUlt(v){P.ult=Math.min(100,P.ult+v)}
 
 /* ═══════════════ 플레이어 행동 ═══════════════ */
-const SYN={dmg:[7,8,12],time:[.3,.3,.46],range:2.5,heavy:24};
-const TER={dmg:[15,22],time:[.48,.6],range:2.8,heavy:34};
+// 기본 공격 4타. 4타째는 마무리 — 시너지아(센티아·센수스)·아르케: 360° 회전 베기 / 테로르: 내려찍기 (범위 +0.5m)
+const SYN={dmg:[6,7,8,13],time:[.28,.28,.32,.5],range:2.5,heavy:24,moves:['H1','H2','V','spin']};
+const TER={dmg:[14,16,19,28],time:[.46,.48,.5,.7],range:2.8,heavy:34,moves:['V','H1','H2','V']};
 const W_=()=>P.weapon==='ter'?TER:SYN;
 function canAct(){return P.state==='idle'||P.state==='move'}
 function doAttack(){
@@ -243,19 +248,22 @@ function attackHit(){
   const mo=playerMotion();const col=Weapons.trail(P.rig.weaponR);
   FX.spawn('slash',{x:P.x,y:mo==='V'?1.15:1.05,z:P.z,yaw:P.face,roll:mo==='V'?Math.PI/2:(mo==='H2'?.22:-.22),dir:mo==='H2'?-1:1,r:(heavy?3.4:W.range*.95),col,life:heavy?.32:.24});
   if(P.rig.weaponL&&mo!=='V')FX.spawn('slash',{x:P.x,y:.95,z:P.z,yaw:P.face,roll:mo==='H2'?-.35:.35,dir:mo==='H2'?1:-1,r:W.range*.85,col:Weapons.trail(P.rig.weaponL),life:.2});
+  const fin=!heavy&&P.combo===W.dmg.length-1,spin=fin&&mo==='spin';
+  if(spin){FX.spawn('slash',{x:P.x,y:1.05,z:P.z,yaw:P.face+Math.PI,roll:-.22,dir:1,r:W.range*.95,col,life:.26});FX.spawn('ring',{x:P.x,z:P.z,size:1,grow:1.8,life:.35,col});shake(.12)}
+  else if(fin){FX.spawn('ring',{x:P.x+fx0*1.4,z:P.z+fz0*1.4,size:1.2,grow:1.5,life:.35,col});shake(.15)}
   if(heavy){FX.spawn('ring',{x:P.x+fx0*1.6,z:P.z+fz0*1.6,size:1.4,grow:1.4,life:.4,col});shake(.18)}
-  const range=(heavy?3.3:W.range)+(P.arche>0?ARCHE.range:0),cosA=Math.cos((heavy?75:65)*Math.PI/180);let any=false;
+  const range=(heavy?3.3:W.range)+(fin?.5:0)+(P.arche>0?ARCHE.range:0),cosA=spin?-1:Math.cos((heavy?75:65)*Math.PI/180);let any=false;
   for(const e of alive()){const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz);if(d>range+.4)continue;
     if(d>1&&(dx*fx0+dz*fz0)/d<cosA)continue;
     let dmg=heavy?W.heavy:W.dmg[P.combo];if(P.weapon==='ter'&&P.sync>=80)dmg=Math.round(dmg*1.4);if(P.arche>0)dmg=Math.round(dmg*ARCHE.dmg);
-    hitEnemy(e,dmg,{weapon:P.weapon,stagger:heavy});any=true}
+    hitEnemy(e,dmg,{weapon:P.weapon,stagger:heavy||fin});any=true}
   if(fuseOn())for(const c of S.fuse.cores){if(c.dead)continue;const dx=c.x-P.x,dz=c.z-P.z,d=Math.hypot(dx,dz);if(d>range+.5)continue;if(d>1&&(dx*fx0+dz*fz0)/d<cosA)continue;hitCore(c,heavy?W.heavy:W.dmg[P.combo]);any=true}
   if(any){if(P.weapon==='ter'){P.sync=Math.min(100,P.sync+(heavy?18:12));P.void=Math.min(100,P.void+4);gainUlt(heavy?8:3);if(P.sync>=100)erosion()}
     else{P.void=Math.min(100,P.void+(heavy?12:7));gainUlt(heavy?8:2)}
     if(tut&&tut.step===2&&heavy)tut.heavy++}
-  sfx(any?(heavy||P.combo===2||P.weapon==='ter'?'heavy':'hit'):'ui')}
+  sfx(any?(heavy||fin||P.weapon==='ter'?'heavy':'hit'):'ui')}
 function hitEnemy(e,raw,o={}){
-  if(e.lock){num(e.x,DEF.H*.75,e.z,'무효','');e.flash=.05;return}
+  if(e.lock||e.inv){num(e.x,DEF.H*.75,e.z,'무효','');e.flash=.05;return}
   let d=raw*(P.fear>0?.6:1)*(e.vuln>0?FUSE.vuln:1);if(P.crit>0&&!o.noCrit){d*=2;P.crit--}
   if(e.barrier&&!o.pierce)d*=.5;d=Math.round(d);
   const before=e.hp;e.hp-=d;const floor=DEF.noJudge?0:DEF.tutorial?e.max*.3:1;if(e.hp<floor)e.hp=floor;
@@ -304,7 +312,8 @@ async function doVoid(){if(P.void<40||P.state==='dodge'||P.state==='ult')return;
   slow(1.1,.3);vfx();
   FX.spawn('ring',{x:P.x,z:P.z,size:1.2,grow:7,life:.7,col:[.6,.5,1]});FX.spawn('vring',{x:P.x,y:1.1,z:P.z,size:1,life:.5,col:[.7,.6,1]});
   P.fear=0;
-  if(fuseOn()){const n=coresInRadius(FUSE.voidR,true);if(!n)callout('흡융 핵이 너무 멀다 — 5m 안에서','red')}
+  if(fuseOn()){if(S.fuse.kind==='cores'){const n=coresInRadius(FUSE.voidR,true);if(!n)callout('흡융 핵이 너무 멀다 — 5m 안에서','red')}
+    else{const e=ENS[0];if(Math.hypot(e.x-P.x,e.z-P.z)<=FUSE.brandVoidR)brandStrip('void');else callout('네시스가 너무 멀다 — 6m 안에서','red')}}
   for(const e of alive()){if(e.lock)continue;if(Math.hypot(e.x-P.x,e.z-P.z)>9)continue;const had=e.stacks;e.stacks=0;e.stun=3;e.state='stun';S.tele=S.tele.filter(t=>t.e!==e);e.att=null;
     if(curId==='phobia'){e.barrier=0;e.brokenT=8}
     hitEnemy(e,10,{pierce:1,noCrit:1});
@@ -314,14 +323,14 @@ async function doVoid(){if(P.void<40||P.state==='dodge'||P.state==='ult')return;
 function vfx(){$('vfx').classList.remove('on');void $('vfx').offsetWidth;$('vfx').classList.add('on')}
 /* ── E 스킬: 들고 있는 무기에 따라 바뀐다 ─────────────────────────────
    이든은 무기를 하나씩 든다. Tab 으로 센티아 → 센수스 → 테로르 순서로 바꾸고(가진 것만), E 는 지금 든 무기의 스킬.
-   센티아                    「센티아 · 정교한 설계」
-   센수스                    「센수스 · 감정 증폭」
+   센티아                    「센티아 · 논리 절단」 (이성 — 계산한 세 절단선을 한꺼번에 벤다)
+   센수스                    「센수스 · 감각 폭주」 (본성 — 감각에 몸을 맡긴 4연속 돌진 베기 + 마무리)
    에고웨폰 (흡수한 사념)    「공명 베기」 변형 — 사념의 힘을 쓴다. 체험판: 테로르 → 「공명 베기 · 공포」
    아르케 (해방 중)          아르케 고유 스킬 「아르케 · 기원의 일섬」
    무기마다 재사용 대기시간이 따로 돈다. */
 const SKILL={
-  sentia:{name:'센티아 · 정교한 설계',btn:'정교한 설계',cd:8},
-  sensus:{name:'센수스 · 감정 증폭',btn:'감정 증폭',cd:8},
+  sentia:{name:'센티아 · 논리 절단',btn:'논리 절단',cd:8},
+  sensus:{name:'센수스 · 감각 폭주',btn:'감각 폭주',cd:8},
   arche:{name:'아르케 · 기원의 일섬',btn:'기원의 일섬',cd:8},
   // 공명 베기 변형 — 에고웨폰(흡수한 사념)마다 하나씩. 새 에고웨폰이 생기면 여기에 추가
   reson:{ter:{name:'공명 베기 · 공포',btn:'공명 · 공포',cd:10}}};
@@ -331,11 +340,33 @@ function ownedWeapons(){const l=ctx.flags.reunited?['sentia','sensus']:[ctx.part
 const heldWeapon=()=>P.weapon==='ter'?'ter':P.sister;
 const skillMode=()=>P.arche>0?'arche':P.weapon==='ter'?'reson':P.sister;
 const skillCdKey=m=>m==='arche'?'cdX':m==='reson'?'skillCd':m==='sentia'?'cdA':'cdB';
-function sentiaSkill(){P.shield+=20;P.crit=3;callout(SKILL.sentia.name,'vio');sfx('parry');FX.spawn('vring',{x:P.x,y:1.1,z:P.z,size:1.1,life:.5,col:[.6,.9,1]});burst('sentia',.6)}
-function sensusSkill(){FX.spawn('ring',{x:P.x,z:P.z,size:1.4,grow:1.6,life:.4,col:[1,.6,.3]});FX.spawn('slash',{x:P.x,y:1,z:P.z,yaw:P.face,roll:0,dir:1,r:3.2,col:[1,.6,.3],life:.3});FX.spawn('slash',{x:P.x,y:1,z:P.z,yaw:P.face+Math.PI,roll:0,dir:1,r:3.2,col:[1,.6,.3],life:.3});
-  for(const en of alive())if(Math.hypot(en.x-P.x,en.z-P.z)<3.4)hitEnemy(en,36,{});
-  if(fuseOn())for(const c of S.fuse.cores)if(!c.dead&&Math.hypot(c.x-P.x,c.z-P.z)<3.6)hitCore(c,30);
-  callout(SKILL.sensus.name,'vio');sfx('heavy');burst('sensus',.6)}
+// 시간차 타격 대기열 (스킬의 연속 타격용 — 일시정지·감속을 따른다)
+function later(t,fn){S.hitQ.push({t,fn})}
+function updateHitQ(dt){if(!S.hitQ.length)return;for(const q of S.hitQ)q.t-=dt;const due=S.hitQ.filter(q=>q.t<=0);S.hitQ=S.hitQ.filter(q=>q.t>0);for(const q of due)q.fn()}
+const skTarget=r=>nearestCore(r)||nearest(r);
+function hitAt(x,z,r,dmg,o={}){let n=0;for(const en of alive())if(Math.hypot(en.x-x,en.z-z)<=r+.3){hitEnemy(en,dmg,Object.assign({weapon:'syn'},o));n++}
+  if(fuseOn())for(const c of S.fuse.cores)if(!c.dead&&Math.hypot(c.x-x,c.z-z)<=r+.4){hitCore(c,dmg);n++}return n}
+/* 센티아 · 논리 절단 — 이성. 대상 위에 세 개의 절단선을 계산해 긋고(0.5초), 한꺼번에 잘라낸다.
+   절단선마다 16 (세 줄이 모두 지나는 대상 중심은 48). 경직·무방비 상태의 적에겐 「약점 계산」 1.5배. 8m 안 대상(흡융 핵 우선), 없으면 앞쪽 4m */
+function segDist(px,pz,ax,az,bx,bz){const vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((px-ax)*vx+(pz-az)*vz)/(vx*vx+vz*vz)));return Math.hypot(px-ax-vx*t,pz-az-vz*t)}
+function sentiaSkill(){const t=skTarget(8);const fx=Math.sin(P.face),fz=Math.cos(P.face);const tx=t?t.x:P.x+fx*4,tz=t?t.z:P.z+fz*4;
+  callout(SKILL.sentia.name,'vio');sfx('parry');burst('sentia',.8);FX.spawn('vring',{x:P.x,y:1.2,z:P.z,size:1.1,life:.4,col:[.6,.9,1]});
+  const lines=[];for(let i=0;i<3;i++){const a=P.face+Math.PI/2+i*Math.PI/3,dx=Math.sin(a)*2.6,dz=Math.cos(a)*2.6;lines.push([tx-dx,tz-dz,tx+dx,tz+dz,a])}
+  // 계산: 절단선을 점선으로 미리 긋는다
+  for(const [ax,az,bx,bz] of lines)for(let k=0;k<=6;k++){const u=k/6;FX.spawn('glow',{x:ax+(bx-ax)*u,y:1.1,z:az+(bz-az)*u,size:.45,col:[.6,.92,1],life:.5})}
+  later(.5,()=>{shake(.22);sfx('heavy');FX.spawn('vring',{x:tx,y:1.1,z:tz,size:1.4,life:.4,col:[.75,.95,1]});
+    for(const [ax,az,bx,bz,a] of lines)FX.spawn('slash',{x:tx,y:1.1,z:tz,yaw:a,roll:0,dir:1,r:2.6,col:[.65,.95,1],life:.25});
+    for(const en of alive()){let n=0;for(const [ax,az,bx,bz] of lines)if(segDist(en.x,en.z,ax,az,bx,bz)<1)n++;
+      if(n){const weak=en.state==='stun'||en.vuln>0;hitEnemy(en,Math.round(16*n*(weak?1.5:1)),{weapon:'syn',stagger:true});if(weak)callout('약점 계산','org')}}
+    if(fuseOn())for(const c of S.fuse.cores){if(c.dead)continue;let n=0;for(const [ax,az,bx,bz] of lines)if(segDist(c.x,c.z,ax,az,bx,bz)<1.1)n++;if(n)hitCore(c,16*n)}})}
+/* 센수스 · 감각 폭주 — 본성. 감각에 몸을 맡겨 대상에게 네 번 연달아 뛰어들며 베고, 마지막에 크게 휩쓴다.
+   0.14초 간격 돌진 베기 9 × 4 (매번 대상 쪽으로 최대 2m) → 0.7초 주변 3.2m 휩쓸기 20 = 56. 돌진 중 무적 */
+function sensusSkill(){callout(SKILL.sensus.name,'vio');sfx('heavy');burst('sensus',.9);P.iframe=Math.max(P.iframe,.8);
+  for(let i=0;i<4;i++)later(.04+i*.14,()=>{const t=skTarget(6);if(t){const dx=t.x-P.x,dz=t.z-P.z,d=Math.hypot(dx,dz)||1;P.face=Math.atan2(dx,dz);if(d>1.2){const m=Math.min(2,d-1.1);P.x+=dx/d*m;P.z+=dz/d*m}}
+    const fx=Math.sin(P.face),fz=Math.cos(P.face);FX.spawn('slash',{x:P.x,y:1+(i%2)*.15,z:P.z,yaw:P.face,roll:(i%2?.5:-.5),dir:i%2?-1:1,r:2.4,col:[1,.6,.3],life:.18});
+    FX.spawn('spark',{x:P.x+fx*1.2,y:1.1,z:P.z+fz*1.2,n:5,col:[1,.6,.3],speed:5});sfx('hit');hitAt(P.x+fx*1.1,P.z+fz*1.1,1.6,9)});
+  later(.7,()=>{FX.spawn('slash',{x:P.x,y:1.05,z:P.z,yaw:P.face,roll:0,dir:1,r:3.2,col:[1,.55,.25],life:.3});FX.spawn('slash',{x:P.x,y:1.05,z:P.z,yaw:P.face+Math.PI,roll:0,dir:1,r:3.2,col:[1,.55,.25],life:.3});
+    FX.spawn('ring',{x:P.x,z:P.z,size:1.2,grow:2.2,life:.4,col:[1,.55,.25]});sfx('heavy');shake(.25);hitAt(P.x,P.z,3.2,20,{stagger:true})})}
 // 공명 베기 · 공포 (에고웨폰 테로르): 앞쪽 8m 일직선 관통 베기 34, 맞은 적 1.2초 경직, 동기화율 +20. 공명 헤일로(황금 7개 재구성 고리)
 function resonSlash(){const R=SKILL.reson.ter;P.resonT=1.4;burst('fear',.9);callout(R.name,'vio');sfx('heavy');
   const fx=Math.sin(P.face),fz=Math.cos(P.face),L=8,W=1.6;
@@ -344,7 +375,8 @@ function resonSlash(){const R=SKILL.reson.ter;P.resonT=1.4;burst('fear',.9);call
   for(const en of alive()){const dx=en.x-P.x,dz=en.z-P.z,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-.5&&along<L&&side<W){hitEnemy(en,34,{stagger:true,weapon:'ter'});if(!en.lock&&!en.dead&&en.state!=='stun'){en.state='stun';en.stun=Math.max(en.stun||0,1.2);S.tele=S.tele.filter(t=>t.e!==en);en.att=null}}}
   if(fuseOn())for(const c of S.fuse.cores){if(c.dead)continue;const dx=c.x-P.x,dz=c.z-P.z,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-.5&&along<L&&side<W+.4)hitCore(c,34)}
   P.sync=Math.min(100,P.sync+20)}
-// 아르케 · 기원의 일섬: 앞으로 최대 6.5m 꿰뚫고 지나가며(무적) 길 위의 모든 것을 벤다 48. 맞은 적의 감정 강화를 지우고, 길 위의 흡융 핵은 즉시 소거
+// 아르케 · 기원의 일섬 — 공허·기원. 앞으로 최대 6.5m 꿰뚫고 지나가며(무적) 길 위의 모든 것을 벤다 48, 0.45초 뒤 그 길에 공허의 균열이 터진다 30.
+// 맞은 적의 감정 강화를 지우고, 길 위의 흡융 핵은 즉시 소거
 function archeSkill(){const fx=Math.sin(P.face),fz=Math.cos(P.face),L=6.5,W=1.5,sx=P.x,sz=P.z;
   let len=L;const lim=ARENA-.6;for(let t=0;t<=L;t+=.25){const x=sx+fx*t,z=sz+fz*t;if(Math.hypot(x,z)>lim){len=t;break}}
   P.x=sx+fx*len;P.z=sz+fz*len;P.iframe=Math.max(P.iframe,.5);
@@ -353,7 +385,10 @@ function archeSkill(){const fx=Math.sin(P.face),fz=Math.cos(P.face),L=6.5,W=1.5,
   FX.spawn('slash',{x:P.x,y:1.1,z:P.z,yaw:P.face+Math.PI,roll:0,dir:1,r:3.6,col:[.85,.75,1],life:.35});
   for(const en of alive()){const dx=en.x-sx,dz=en.z-sz,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-.6&&along<len+1&&side<W){hitEnemy(en,48,{stagger:true,weapon:'syn'});en.stacks=0;if(en.flags)en.flags.eye=1;en.harvest=0}}
   if(fuseOn())for(const c of S.fuse.cores){if(c.dead)continue;const dx=c.x-sx,dz=c.z-sz,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-.6&&along<len+1&&side<W+.5){coreBreak(c,true);if(!fuseOn())break}}
-  callout(SKILL.arche.name,'vio');sfx('heavy');shake(.3);burst('void',.8)}
+  callout(SKILL.arche.name,'vio');sfx('heavy');shake(.3);burst('void',.8);
+  // 지나간 길을 따라 0.45초 뒤 공허의 균열이 터진다 (30)
+  later(.45,()=>{for(let t=0;t<=len;t+=1.1)FX.spawn('ring',{x:sx+fx*t,z:sz+fz*t,size:.5,grow:1.4,life:.4,col:[.6,.35,1]});FX.spawn('beam',{x:sx+fx*len*.5,z:sz+fz*len*.5,col:[.55,.3,1],life:.4});sfx('void');shake(.2);
+    for(const en of alive()){const dx=en.x-sx,dz=en.z-sz,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-.6&&along<len+1&&side<W)hitEnemy(en,30,{weapon:'syn'})}})}
 function doSkill(){if(!canAct()||!grounded())return;const mode=skillMode(),key=skillCdKey(mode);if(P[key]>0)return;
   P[key]=mode==='reson'?SKILL.reson.ter.cd:SKILL[mode].cd;
   const e=nearest(7);if(e)P.face=Math.atan2(e.x-P.x,e.z-P.z);
@@ -380,7 +415,7 @@ function doSwap(){const l=ownedWeapons();if(l.length<2||DEF.tutorial||!canAct()|
   callout(n==='ter'?'에고웨폰 · 테로르':'시너지아 · '+WNAME[n],n==='ter'?'vio':'');hud()}
 // 상호작용(F): 단죄가 우선, 없으면 가까운 아이템 줍기
 function interactTarget(){if(cine||!P)return null;
-  if(!DEF.noJudge&&!DEF.tutorial&&!fuseOn()){const e=ENS[0];if(!e.dead&&e.hp<=e.max*.25&&Math.hypot(e.x-P.x,e.z-P.z)<7)return{kind:'judge',e,label:DEF.label||'단죄'}}
+  if(!DEF.noJudge&&!DEF.tutorial&&!fuseOn()&&!S.omen&&!(DEF.fuse&&(ENS[0].flags.fuseN||0)<FUSE.forms.length)){const e=ENS[0];if(!e.dead&&e.hp<=e.max*.25&&Math.hypot(e.x-P.x,e.z-P.z)<7)return{kind:'judge',e,label:DEF.label||'단죄'}}
   let best=null,bd=1.9;for(const it of S.items){const d=Math.hypot(it.x-P.x,it.z-P.z);if(d<bd){bd=d;best=it}}
   return best?{kind:'item',it:best,label:ITEMS[best.type].name+' 줍기'}:null}
 function doInteract(){const t=interactTarget();if(!t)return;if(t.kind==='judge')return doJudge(t.e);
@@ -406,7 +441,7 @@ function hurtPlayer(d,o={}){
 const DOM={kind:'',k:0,burst:0,bk:''};
 function burst(kind,t){DOM.bk=kind;DOM.burst=Math.max(DOM.burst,t)}
 function updateDomain(dt){let want='',w=0;
-  if(P.arche>0){want='void';w=1}else if(fuseOn()){want='fuse';w=1}else if(DOM.burst>0){want=DOM.bk;w=Math.min(1,DOM.burst*1.4)}
+  if(P.arche>0){want='void';w=1}else if(fuseOn()){want='fuse';w=1}else if(S.omen){want='fuse';w=.55}else if(DOM.burst>0){want=DOM.bk;w=Math.min(1,DOM.burst*1.4)}
   DOM.burst=Math.max(0,DOM.burst-dt);
   if(want&&want!==DOM.kind&&DOM.k<.05)DOM.kind=want;
   const tgt=want===DOM.kind?w:0;DOM.k+=(tgt-DOM.k)*Math.min(1,dt*(tgt>DOM.k?5:2.2));
@@ -436,17 +471,30 @@ function drawHalo(kind,x,y,z,yaw,a,sc0=1){const t=S.time||0,[hx,hy,hz]=haloAt(x,
 /* ═══════════════ 흡융 기믹 ═══════════════ */
 const fuseOn=()=>S.fuse&&S.fuse.state==='run';
 function nearestCore(maxD){if(!fuseOn())return null;let b=null,bd=maxD||1e9;for(const c of S.fuse.cores){if(c.dead)continue;const d=Math.hypot(c.x-P.x,c.z-P.z);if(d<bd){bd=d;b=c}}return b}
-function fuseStart(e,n){const lim=FUSE.limit[Math.min(n,FUSE.limit.length-1)];
-  S.tele=S.tele.filter(t=>t.e!==e);e.att=null;e.state='idle';e.cool=1.6;e.lock=true;e.moving=false;
-  FX.spawn('spark',{x:e.x,y:1,z:e.z,n:14,col:[.55,.8,1],speed:4});e.x=0;e.z=0;FX.spawn('vring',{x:0,y:1,z:0,size:1.6,life:.6,col:[1,.6,.3]});
-  const base=Math.atan2(P.x,P.z)+Math.PI/FUSE.cores,cores=[];
-  for(let i=0;i<FUSE.cores;i++){const a=base+i*Math.PI*2/FUSE.cores;cores.push({x:Math.sin(a)*FUSE.radius,z:Math.cos(a)*FUSE.radius,hp:FUSE.coreHp,max:FUSE.coreHp,flash:0,dead:false,t:0,ph:i*2.1})}
-  S.fuse={state:'run',n,t:0,limit:lim,cores,tick:0};
-  sfx('judge');shake(.35);vfx();slow(.6,.4);
-  callout('흡융 전개 — 핵을 모두 제거하라','red');
-  tip(n===0?'“흡융… 전개. 이든 님, 피하실 수는 없어요. 지우지 못하면 끝이에요.”':'“다시 한번이에요. 이번엔 더 빨리 삼킬게요.”','nesis');
-  setTimeout(()=>{if(fuseOn())tip(ctx.partner==='A'?'“핵 세 개야. 부수거나, 가까이 가서 「공허의 시야」로 지워.”':'“주인! 저 빛나는 구슬들 다 부숴야 해! 공허로 지우면 한 번에!”')},2600);
-  hud()}
+function fuseOmen(e,n){S.omen={n,t:FUSE.omen};S.tele=S.tele.filter(t=>t.e!==e);e.att=null;e.state='idle';
+  FX.spawn('vring',{x:e.x,y:1.4,z:e.z,size:1.4,life:.8,col:[.75,.85,1]});sfx('judge');shake(.15);
+  callout(n===0?'흡융의 징조 — 네시스가 궁지에 몰렸다':'흡융의 징조 — 네시스가 이든의 공허를 노린다','red');
+  tip(n===0?'“더는… 물러설 곳이 없네요. 그렇다면 전부 삼킬게요.”':'“당신의 공허… 그것까지 제 것으로 만들겠어요.”','nesis');hud()}
+function fuseStart(e,n){const F=FUSE.forms[n];S.omen=null;
+  S.tele=S.tele.filter(t=>t.e!==e);e.att=null;e.state='idle';e.moving=false;
+  if(F.kind==='cores'){e.cool=1.6;e.lock=true;
+    FX.spawn('spark',{x:e.x,y:1,z:e.z,n:14,col:[.55,.8,1],speed:4});e.x=0;e.z=0;FX.spawn('vring',{x:0,y:1,z:0,size:1.6,life:.6,col:[1,.6,.3]});
+    const base=Math.atan2(P.x,P.z)+Math.PI/FUSE.cores,cores=[];
+    for(let i=0;i<FUSE.cores;i++){const a=base+i*Math.PI*2/FUSE.cores;cores.push({x:Math.sin(a)*FUSE.radius,z:Math.cos(a)*FUSE.radius,hp:FUSE.coreHp,max:FUSE.coreHp,flash:0,dead:false,t:0,ph:i*2.1})}
+    S.fuse={state:'run',kind:'cores',n,t:0,limit:F.limit,cores,tick:0};
+    callout('흡융 핵 전개 — 핵을 모두 제거하라','red');
+    tip('“흡융… 전개. 이든 님, 피하실 수는 없어요. 지우지 못하면 끝이에요.”','nesis');
+    setTimeout(()=>{if(fuseOn())tip(ctx.partner==='A'?'“핵 세 개야. 부수거나, 가까이 가서 「공허의 시야」로 지워.”':'“주인! 저 빛나는 구슬들 다 부숴야 해! 공허로 지우면 한 번에!”')},2600)}
+  else{e.cool=.6;e.inv=true;
+    S.fuse={state:'run',kind:'brand',n,t:0,limit:F.limit,stacks:FUSE.brandStacks,cores:[],tick:0};
+    FX.spawn('beam',{x:P.x,z:P.z,col:[1,.6,.3],life:.6});FX.spawn('ring',{x:P.x,z:P.z,size:.4,grow:1.6,life:.5,col:[1,.6,.3]});
+    callout('흡융 낙인 — 흡융 사슬을 흘려보내라','red');
+    tip('“낙인을 새겼어요. 이게 다 차면, 당신은 제 안으로 녹아들어요.”','nesis');
+    setTimeout(()=>{if(fuseOn())tip(ctx.partner==='A'?'“주황 사슬은 흘려보낼 수 있어. 흘릴 때마다 낙인이 하나씩 벗겨져. 가까이서 공허의 시야도 돼.”':'“사슬 오면 딱 맞춰 흘려! 그럼 낙인이 벗겨져! 붙어서 공허 써도 돼!”')},2400)}
+  sfx('judge');shake(.35);vfx();slow(.6,.4);hud()}
+function brandStrip(how){const f=S.fuse;if(!f||f.kind!=='brand'||f.state!=='run')return;f.stacks--;
+  FX.spawn('ring',{x:P.x,z:P.z,size:.5,grow:2,life:.45,col:how==='void'?[.65,.5,1]:[1,.75,.4]});FX.spawn('spark',{x:P.x,y:1.6,z:P.z,n:10,col:[1,.7,.4],speed:5});sfx('void');P.void=Math.min(100,P.void+8);gainUlt(6);
+  callout(f.stacks>0?`낙인 제거 · 남은 낙인 ${f.stacks}`:'흡융 낙인 소거',f.stacks>0?'vio':'org');if(f.stacks<=0)fuseClear();hud()}
 function hitCore(c,dmg){if(c.dead)return;c.hp-=dmg;c.flash=.12;num(c.x,1.6,c.z,Math.round(dmg),'');FX.spawn('spark',{x:c.x,y:1.2,z:c.z,n:6,col:[1,.7,.4],speed:4});
   if(c.hp<=0)coreBreak(c);hud()}
 function coreBreak(c,byVoid){c.dead=true;FX.spawn('ring',{x:c.x,z:c.z,size:.6,grow:2.2,life:.5,col:byVoid?[.6,.5,1]:[1,.6,.3]});FX.spawn('motes',{x:c.x,z:c.z,n:12,col:[.6,.8,1],to:[P.x,1.2,P.z]});
@@ -454,7 +502,7 @@ function coreBreak(c,byVoid){c.dead=true;FX.spawn('ring',{x:c.x,z:c.z,size:.6,gr
   const left=S.fuse.cores.filter(k=>!k.dead).length;callout(left?`흡융 핵 제거 · 남은 핵 ${left}`:'흡융 소거',left?'vio':'org');
   if(!left)fuseClear()}
 function coresInRadius(r,byVoid){if(!fuseOn())return 0;let n=0;for(const c of S.fuse.cores)if(!c.dead&&Math.hypot(c.x-P.x,c.z-P.z)<=r){coreBreak(c,byVoid);n++;if(!S.fuse||S.fuse.state!=='run')break}return n}
-function fuseClear(){const e=ENS[0];S.fuse.state='done';e.lock=false;e.state='stun';e.stun=FUSE.stun;e.vuln=FUSE.stun;S.tele=[];e.att=null;
+function fuseClear(){const e=ENS[0];S.fuse.state='done';e.lock=false;e.inv=false;e.state='stun';e.stun=FUSE.stun;e.vuln=FUSE.stun;S.tele=[];e.att=null;
   FX.spawn('beam',{x:e.x,z:e.z,col:[1,.6,.3],life:.7});FX.spawn('ring',{x:e.x,z:e.z,size:1,grow:5,life:.7,col:[.55,.8,1]});sfx('parry');slow(.7,.3);shake(.4);
   P.ult=Math.min(100,P.ult+25);setTimeout(()=>{if(S.fuse&&S.fuse.state==='done'){S.fuse=null;hud()}},1200);
   callout('흡융 역류 — 네시스 무방비','org');tip('“흡융이… 역류해요? 이든 님, 당신은 대체…!”','nesis');hud()}
@@ -464,17 +512,19 @@ function fuseFail(){const f=S.fuse;f.state='fail';const e=ENS[0];
   sfx('judge');shake(.6);buzz([220,80,320]);vfx();
   const god=window.Master&&Master.on&&Master.opts.god;
   if(god){callout('즉사 — 무적으로 버팀','red');f.state='done';setTimeout(()=>{if(S.fuse===f)S.fuse=null},800)}
-  else{S.deathMsg='흡융에 삼켜졌다. 흡융 핵을 모두 지우지 못했다.';P.hp=0;callout('흡융 — 즉사','red')}
-  e.lock=false;e.cool=1.2;hud()}
+  else{S.deathMsg=f.kind==='brand'?'흡융 낙인이 완성되었다. 낙인을 모두 지우지 못했다.':'흡융에 삼켜졌다. 흡융 핵을 모두 지우지 못했다.';P.hp=0;callout('흡융 — 즉사','red')}
+  e.lock=false;e.inv=false;e.cool=1.2;hud()}
 function updateFuse(dt){const e=ENS[0];
-  if(DEF.fuse&&!S.fuse&&e&&!e.dead&&!cine){const n=e.flags.fuseN||0;if(n<FUSE.at.length&&e.hp<=e.max*FUSE.at[n]){e.flags.fuseN=n+1;fuseStart(e,n)}}
+  if(DEF.fuse&&!S.fuse&&!S.omen&&e&&!e.dead&&!cine&&e.state!=='stun'&&!(e.vuln>0)){const n=e.flags.fuseN||0;const F=FUSE.forms[n];if(F&&e.hp<=e.max*F.at){e.flags.fuseN=n+1;fuseOmen(e,n)}}
+  if(S.omen){S.omen.t-=dt;e.cool=Math.max(e.cool,.5);if(Math.random()<dt*8)FX.spawn('glow',{x:e.x+(Math.random()-.5)*2,y:1+Math.random()*1.6,z:e.z+(Math.random()-.5)*2,size:.6,col:Math.random()<.5?[1,.6,.3]:[.5,.8,1],life:.4});if(S.omen.t<=0&&!e.dead)fuseStart(e,S.omen.n)}
   const f=S.fuse;if(!f||!e||e.dead)return;
   for(const c of f.cores){c.t+=dt;c.flash=Math.max(0,c.flash-dt)}
   if(f.state!=='run')return;
   f.t+=dt;const k=f.t/f.limit;
-  // 끌어당김 — 시간이 갈수록 강해진다 (회피·돌진 중엔 약하게)
-  const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz);if(d>1.4){const pw=(FUSE.pull[0]+(FUSE.pull[1]-FUSE.pull[0])*k)*(P.state==='dodge'||P.state==='dash'?.3:1);P.x+=dx/d*pw*dt;P.z+=dz/d*pw*dt}
-  f.tick+=dt;if(f.tick>.12){f.tick=0;for(const c of f.cores)if(!c.dead){const t=Math.random();FX.spawn('glow',{x:c.x+(e.x-c.x)*t,y:1.1+Math.sin(t*Math.PI)*.4,z:c.z+(e.z-c.z)*t,size:.55,col:Math.random()<.5?[1,.55,.25]:[.45,.75,1],life:.25})}}
+  // 끌어당김 — 핵 전개 때만. 시간이 갈수록 강해진다 (회피·돌진 중엔 약하게)
+  const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz);if(f.kind==='cores'&&d>1.4){const pw=(FUSE.pull[0]+(FUSE.pull[1]-FUSE.pull[0])*k)*(P.state==='dodge'||P.state==='dash'?.3:1);P.x+=dx/d*pw*dt;P.z+=dz/d*pw*dt}
+  f.tick+=dt;if(f.tick>.12&&f.kind==='brand'){f.tick=0;const t=Math.random();FX.spawn('glow',{x:P.x+(e.x-P.x)*t,y:1.3+Math.sin(t*Math.PI)*.5,z:P.z+(e.z-P.z)*t,size:.45,col:[1,.55,.25],life:.22})}
+  if(f.tick>.12){f.tick=0;for(const c of f.cores)if(!c.dead){const t=Math.random();FX.spawn('glow',{x:c.x+(e.x-c.x)*t,y:1.1+Math.sin(t*Math.PI)*.4,z:c.z+(e.z-c.z)*t,size:.55,col:Math.random()<.5?[1,.55,.25]:[.45,.75,1],life:.25})}}
   if(Math.floor(f.t)!==Math.floor(f.t-dt)){const left=Math.ceil(f.limit-f.t);if(left<=3&&left>0){sfx('ui');buzz(40)}hud()}
   if(f.t>=f.limit)fuseFail()}
 
@@ -515,6 +565,7 @@ function parried(e,a){sfx('parry');hitstop=.12;slow(.45,.25);P.parryT=0;P.state=
   P.face=Math.atan2(e.x-P.x,e.z-P.z);
   hitEnemy(e,a.heavy?30:14,{noCrit:1,pierce:curId==='phobia'&&a.heavy});
   if(curId==='phobia'&&a.heavy){e.barrier=0;e.brokenT=7;callout('성흔 장벽 붕괴','vio')}
+  if(fuseOn()&&S.fuse.kind==='brand'&&a.n==='흡융 사슬'){e.stun=.55;brandStrip('parry')}
   if(tut&&tut.step===3)tut.parried++}
 function updateEnemy(e,dt){
   if(e.dead){e.t+=dt;e.alpha=Math.max(0,1-e.t*1.5);return}
@@ -540,7 +591,7 @@ function updateEnemy(e,dt){
     if(a.leap&&e.t<a.wind*.5){a._cx=P.x;a._cz=P.z}
     if(a.leap){const k=clamp((e.t-a.wind*.55)/(a.wind*.45),0,1);if(k>0){e.x=a._sx+(a._cx-a._sx)*k;e.z=a._sz+(a._cz-a._sz)*k;e.hop=Math.sin(k*Math.PI)*2.2}}
     if(e.t>=a.wind){e.hop=0;strike(e)}return}
-  if(e.state==='rec'){e.t+=dt;if(e.t>=(e.att?e.att.rec:.5)){e.state='idle';e.cool=DEF.gap*R(.7,1.3);e.att=null}}
+  if(e.state==='rec'){e.t+=dt;if(e.t>=(e.att?e.att.rec:.5)){e.state='idle';e.cool=(fuseOn()&&S.fuse.kind==='brand')?.35:DEF.gap*R(.7,1.3);e.att=null}}
 }
 
 /* ═══════════════ 갱신 ═══════════════ */
@@ -592,6 +643,7 @@ function update(dt){
   for(let i=0;i<ENS.length;i++)for(let j=i+1;j<ENS.length;j++){const a=ENS[i],b=ENS[j];if(a.dead||b.dead)continue;const dx=a.x-b.x,dz=a.z-b.z,d=Math.hypot(dx,dz);if(d<1.2&&d>0){const p=(1.2-d)/2;a.x+=dx/d*p;a.z+=dz/d*p;b.x-=dx/d*p;b.z-=dz/d*p}}
   for(const e of ENS)updateEnemy(e,dt);
   updateFuse(dt);
+  updateHitQ(dt);
   updateDomain(dt);
   for(const it of S.items)it.t+=dt;
   if(tut)tutorial();
@@ -616,7 +668,7 @@ function updateCine(dt){cine.t+=dt;const e=cine.e;
 /* ═══════════════ 튜토리얼 ═══════════════ */
 function tutText(i){const pc=isPC();return[
   pc?'WASD로 움직이고, 마우스로 시점을 돌려라.':'왼쪽 화면을 끌어 움직이고, 오른쪽 화면을 끌어 시점을 돌려라.',
-  pc?'좌클릭으로 세 번 베어 봐라. 이어 누르면 연속 베기가 된다.':'공격 버튼으로 세 번 베어 봐라. 이어 누르면 연속 베기가 된다.',
+  pc?'좌클릭으로 네 번 베어 봐라. 이어 누르면 4연속 베기, 마지막 일격은 회전 베기다.':'공격 버튼으로 네 번 베어 봐라. 이어 누르면 4연속 베기, 마지막 일격은 회전 베기다.',
   pc?'좌클릭을 0.5초 동안 누르고 있어라 — 강공격.':'공격 버튼을 0.5초 동안 누르고 있어라 — 강공격.',
   pc?'주황색 표시가 끝나기 직전에 Shift(회피). 맞춰 피하면 흘려보내고 반격한다.':'주황색 표시가 끝나기 직전에 회피. 맞춰 피하면 흘려보내고 반격한다.',
   pc?'빨간색은 흘려보낼 수 없다. Shift로 피하거나 Space로 뛰어넘어라.':'빨간색은 흘려보낼 수 없다. 회피로 피하거나 점프로 뛰어넘어라.',
@@ -628,7 +680,7 @@ const TUTN=9;
 function tutorial(){const t=tut;
   if(t.shown!==t.step){t.shown=t.step;$('atutText').textContent=tutText(t.step);$('atut').classList.add('on');$('atutN').textContent=`${t.step+1} / ${TUTN}`;
     if(t.step===6){P.void=Math.max(P.void,40);hud()}if(t.step===7){P.ult=100;hud()}}
-  const done=[P.moved>3,t.hits>=3,t.heavy>=1,t.parried>=1,t.dodged>=1,t.plunged>=1,t.voided>=1,t.ulted>=1,false][t.step];
+  const done=[P.moved>3,t.hits>=4,t.heavy>=1,t.parried>=1,t.dodged>=1,t.plunged>=1,t.voided>=1,t.ulted>=1,false][t.step];
   if(done){t.step++;sfx('heal');callout('좋다','org');ENS[0].cool=1.4}
   if(t.step===8&&ENS[0].hp<=ENS[0].max*.3+.01&&!S.ending){S.ending=true;tutEnd()}}
 async function tutEnd(){await wait(400);await say('카르도','“됐다, 그만! 허허… 손이 저리는구나.”');
@@ -682,12 +734,12 @@ function drawMap(c,mini){const x=c.getContext('2d'),W=c.width,H=c.height;x.clear
 
 /* ═══════════════ HUD ═══════════════ */
 function hud(){const e=ENS.length>1?null:ENS[0];
-  const fb=$('fuseBar');if(fb){if(fuseOn()){const f=S.fuse;fb.classList.add('on');fb.querySelector('b').textContent=Math.max(0,Math.ceil(f.limit-f.t));fb.querySelector('i').style.width=(100-f.t/f.limit*100)+'%';fb.querySelector('span').textContent=`흡융 핵 ${f.cores.filter(c=>!c.dead).length}개 남음 — 부수거나 「공허의 시야」로 지워라`}else fb.classList.remove('on')}
+  const fb=$('fuseBar');if(fb){if(fuseOn()){const f=S.fuse;fb.classList.add('on');fb.querySelector('b').textContent=Math.max(0,Math.ceil(f.limit-f.t));fb.querySelector('i').style.width=(100-f.t/f.limit*100)+'%';fb.querySelector('span').textContent=f.kind==='brand'?`흡융 낙인 ${f.stacks}겹 — 흡융 사슬을 흘려보내거나 가까이서 「공허의 시야」`:`흡융 핵 ${f.cores.filter(c=>!c.dead).length}개 남음 — 부수거나 「공허의 시야」로 지워라`}else fb.classList.remove('on')}
   const hp=ENS.reduce((s,x)=>s+Math.max(0,x.hp),0),mx=ENS.reduce((s,x)=>s+x.max,0);
   $('aHp').style.width=(hp/mx*100)+'%';$('aLag').style.width=(hp/mx*100)+'%';$('aNum').textContent=`${Math.ceil(hp)} / ${mx}`;
   const ch=[];if(e){if(curId==='furor'&&e.stacks)ch.push(['red',`열기 ${e.stacks}`]);if(curId==='teror')ch.push(e.flags.eye?['gry','공포 수확 소멸']:['vio',`공포 수확 +${e.stacks*2}`]);
     if(curId==='phobia'){ch.push(e.barrier?['vio','성흔 장벽 · 받는 피해 절반']:['gry',`장벽 깨짐 ${Math.ceil(Math.max(0,e.brokenT))}초`]);if(e.fed)ch.push(['red',`포식 +${e.fed*4}`])}
-    if(fuseOn())ch.push(['red','흡융 전개 · 피해 무효'])
+    if(S.omen)ch.push(['red','흡융의 징조']);if(fuseOn())ch.push(['red',(S.fuse.kind==='brand'?'흡융 낙인':'흡융 핵 전개')+' · 피해 무효'])
     if(e.vuln>0)ch.push(['org',`무방비 · 받는 피해 ×${FUSE.vuln}`]);
     if(e.state==='stun'&&!cine)ch.push(['gry','경직'])}
   $('aChips').innerHTML=ch.map(c=>`<span class="chip ${c[0]}">${c[1]}</span>`).join('');
@@ -717,7 +769,7 @@ function overlay(){const it=interactTarget();const pr=$('prompt'),bi=$('bInterac
   if(++miniT%2===0)drawMap($('miniC'),true)}
 
 /* ═══════════════ 동작 (애니메이션) ═══════════════ */
-function playerMotion(){if(P.heavyAtk)return'V';if(P.weapon==='ter')return P.combo===0?'V':'H1';return['H1','H2','V'][P.combo%3]}
+function playerMotion(){if(P.heavyAtk)return'V';const W=W_();return W.moves[P.combo%W.moves.length]}
 function animate(dt){
   const r=P.rig;let name='idle',k=0;
   const charging=IN.atkDown&&!IN.heavyFired&&!IN.airHold&&IN.atkT>.15&&grounded()&&(P.state==='idle'||P.state==='move');
@@ -753,7 +805,7 @@ function render(){if(!E.resize())return;E.clear();
     E.mesh(E.geo('cone4'),E.m4.trs(it.x,y,it.z,Math.PI,rot,0,.32,.3,.32),{c,e:[c[0]*.5,c[1]*.5,c[2]*.5],outline:.02})}
   if(P.arche>0)drawHalo('eden',P.x,P.y,P.z,P.drawYaw,Math.min(1,P.arche*1.5,(ARCHE.dur-P.arche)*3));
   if(P.resonT>0)drawHalo('gold',P.x,P.y,P.z,P.drawYaw,Math.min(1,P.resonT*2));
-  for(const e of ENS)if(curId==='nesis'&&!e.dead)drawHalo('nesis',e.x,e.hop||0,e.z,e.yaw,fuseOn()?1:.35,e.rig.scale);
+  for(const e of ENS)if(curId==='nesis'&&!e.dead)drawHalo('nesis',e.x,e.hop||0,e.z,e.yaw,fuseOn()||S.omen?1:.35,e.rig.scale);
   const pt=P.iframe>0?[.85,.85,1.25]:null;
   P.rig.draw(P.x,P.y,P.z,P.drawYaw,{flash:P.flash>0?.2:0,tint:pt,emit:P.arche>0?[.07,.02,.12]:P.weapon==='ter'?[.06,0,.1]:null});
   for(const e of ENS){if(e.alpha<=0)continue;let fl=e.flash>0?.18:0,emit=null,tint=null;
@@ -769,7 +821,11 @@ function render(){if(!E.resize())return;E.clear();
     E.quad(E.geo('ring:0.8'),E.m4.trs(c.x,y,c.z,Math.PI/2+.5*Math.sin(rot),rot,0,1.15,1,1.15),E.tex.band,[.45,.75,1,.75],{add:1});
     E.quad(E.geo('ctr'),E.m4.trs(c.x,y,c.z,0,E.yawTo(c.x,c.z),0,2.4*pul,2.4*pul,1),E.tex.glow,[1,.55,.25,.5],{add:1});
     E.quad(E.geo('flat'),E.m4.trs(c.x,.05,c.z,0,0,0,2.4,1,2.4),E.tex.glow,[1,.5,.2,.35*hp+.15],{add:1})}
-  if(fuseOn()){const f=S.fuse,k=f.t/f.limit;FX.telegraph({x:0,z:0,dir:[0,1]},{shape:'circle',_cx:0,_cz:0,r:ARENA,parry:0},k)}
+  if(fuseOn()&&S.fuse.kind==='cores'){const f=S.fuse,k=f.t/f.limit;FX.telegraph({x:0,z:0,dir:[0,1]},{shape:'circle',_cx:0,_cz:0,r:ARENA,parry:0},k)}
+  if(fuseOn()&&S.fuse.kind==='brand'){const f=S.fuse,k=f.t/f.limit,t=S.time;
+    E.quad(E.geo('ring:0.86'),E.m4.trs(P.x,P.y+2.35,P.z,0,t*2,0,.5+.25*k,1,.5+.25*k),E.tex.band,[1,.55,.25,.9],{add:1});
+    for(let i=0;i<f.stacks;i++){const a=t*2.4+i*Math.PI*2/FUSE.brandStacks;E.quad(E.geo('ctr'),E.m4.trs(P.x+Math.sin(a)*.6,P.y+2.35,P.z+Math.cos(a)*.6,0,E.yawTo(P.x,P.z),0,.45,.45,1),E.tex.glow,[1,.6,.3,.95],{add:1})}
+    E.quad(E.geo('flat'),E.m4.trs(P.x,.05,P.z,0,0,0,1.6+k*1.6,1,1.6+k*1.6),E.tex.glow,[1,.45,.2,.25+.4*k],{add:1})}
   FX.draw();Stages.drawAmbient()}
 
 /* ═══════════════ 카메라 (3인칭 백뷰) ═══════════════ */
@@ -795,6 +851,7 @@ function loop(now){if(!S.running)return;let dt=Math.min(.05,(now-lastT)/1000);la
 function bot(q){const mode=tut?'smart':window.__AS_BOT;
   // 아이템·단죄
   const it=interactTarget();if(it&&(it.kind==='judge'||mode==='smart')){q.interact=1}
+  if(fuseOn()&&S.fuse.kind==='brand'&&mode==='smart'&&P.void>=40){const e=ENS[0];if(Math.hypot(e.x-P.x,e.z-P.z)<5.5){q.void=1;return}}
   if(fuseOn()){const c=nearestCore();if(c){const dx=c.x-P.x,dz=c.z-P.z,d=Math.hypot(dx,dz)||1;if(mode==='smart'&&P.void>=40&&d<4.5){q.void=1;return}if(d>2){q._wx=dx/d;q._wz=dz/d;if(d>5&&mode==='smart')q.dash=1}else{q._wx=0;q._wz=0;q.atk=1}return}}
   let e=target();if(!e||S.paused)return;
   const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz)||1;
